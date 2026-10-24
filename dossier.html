@@ -4,7 +4,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=IBM+Plex+Mono:wght@400;600&family=Noto+Sans+TC:wght@400;700&family=VT323&display=swap">
 <style>
-/* Layout: an old desktop in graphite gray — folder icons on the left, a taskbar with a start menu at the bottom; every file opens as a window whose inside is a terminal screen. */
+/* Layout: an old desktop in graphite gray — folder icons on the right, a taskbar with a start menu at the bottom; every file opens as a window whose inside is a terminal screen. */
 :root {
   --desk: #2a2a2a; --desk-dot: #333333;          /* wallpaper */
   --face: #5c5c5c; --hi: #858585; --lo: #393939; --edge: #141414;  /* window chrome */
@@ -43,10 +43,12 @@ a { color: var(--acc); text-underline-offset: 3px; }
 .raised { background: var(--face); box-shadow: inset -1px -1px 0 var(--edge), inset 1px 1px 0 var(--hi), inset -2px -2px 0 var(--lo); }
 .pressed { background: var(--lo); box-shadow: inset 1px 1px 0 var(--edge), inset -1px -1px 0 var(--hi); }
 
-.desktop { display: grid; grid-template-columns: 100px minmax(0, 880px); gap: 28px; justify-content: center; align-items: start; }
+[hidden] { display: none !important; }
+
+.desktop { display: grid; grid-template-columns: minmax(0, 880px) 100px; gap: 28px; justify-content: center; align-items: start; }
 
 /* desktop icons */
-.icons { position: sticky; top: 24px; display: flex; flex-direction: column; gap: 12px; }
+.icons { order: 2; position: sticky; top: 24px; display: flex; flex-direction: column; gap: 12px; }
 .icon {
   display: flex; flex-direction: column; align-items: center; gap: 4px;
   background: none; border: 0; padding: 4px; cursor: pointer;
@@ -221,7 +223,7 @@ dialog.viewer img { display: block; max-width: 100%; max-height: 80vh; margin: 4
 @media (max-width: 860px) { .run { display: none; } }
 @media (max-width: 760px) {
   .desktop { grid-template-columns: minmax(0, 1fr); gap: 18px; }
-  .icons { position: static; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 4px 6px; }
+  .icons { order: 0; position: static; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 4px 6px; }
   .icon { width: 80px; }
   .profile { grid-template-columns: minmax(0, 1fr); }
   .screen { padding: 14px 12px 12px; }
