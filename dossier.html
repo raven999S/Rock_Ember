@@ -221,9 +221,19 @@ ul.plain li::before { content: "* "; color: var(--acc); font-family: var(--font-
 .menu li button:hover, .menu li button:focus-visible { background: var(--title-2); }
 .menu hr { border: 0; border-top: 1px solid var(--lo); border-bottom: 1px solid var(--hi); margin: 4px 2px; }
 
-dialog.viewer { padding: 3px; border: 0; max-width: min(1100px, 96vw); background: var(--face); color: var(--chrome-ink); }
+dialog.viewer { padding: 3px; border: 0; width: min(1400px, 96vw); max-width: none; background: var(--face); color: var(--chrome-ink); }
 dialog.viewer::backdrop { background: rgb(10 10 10 / .78); }
-dialog.viewer img { display: block; max-width: 100%; max-height: 80vh; margin: 4px; }
+/* The stage is a scroll box; zooming sets the image's width and the stage scrolls around it. */
+.vstage { display: flex; height: min(76vh, 900px); margin: 4px; overflow: auto; background: var(--scr); box-shadow: inset 1px 1px 0 var(--edge), inset -1px -1px 0 var(--hi); overscroll-behavior: contain; cursor: zoom-in; }
+.vstage img { display: block; flex: none; margin: auto; max-width: none; height: auto; user-select: none; -webkit-user-drag: none; }
+.vstage.zoomed { cursor: grab; }
+.vstage.dragging { cursor: grabbing; }
+.vbar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 0 4px 4px; font-family: var(--font-pixel); font-size: 13px; }
+.vbar button, .vbar a { min-width: 34px; height: 26px; padding: 0 8px; border: 0; cursor: pointer; color: var(--chrome-ink); font: inherit; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
+.vbar button:active, .vbar button.on { box-shadow: inset 1px 1px 0 var(--edge), inset -1px -1px 0 var(--hi); background: var(--lo); }
+.vbar .zoom { min-width: 56px; text-align: center; font-family: var(--font-num); font-size: 18px; padding: 0 6px; }
+.vbar .vhint { margin-left: auto; color: var(--dim); font-family: var(--font-mono); font-size: 12px; }
+@media (max-width: 760px) { .vbar .vhint { display: none; } .vstage { height: 70vh; } }
 
 @media (max-width: 860px) { .run { display: none; } }
 @media (max-width: 760px) {
@@ -646,8 +656,18 @@ dialog.viewer img { display: block; max-width: 100%; max-height: 80vh; margin: 4
 
 <dialog class="viewer" id="viewer">
   <div class="titlebar"><span class="t" id="viewer-title">圖片檢視器</span><div class="ctl"><button class="raised" id="viewer-close" aria-label="關閉">×</button></div></div>
-  <img id="viewer-img" alt="">
-</dialog>
+  <div class="vstage" id="viewer-stage"><img id="viewer-img" alt="" draggable="false"></div>
+  <div class="vbar" id="viewer-bar">
+    <button class="raised" data-zoom="out" aria-label="縮小">−</button>
+    <span class="zoom sunken" id="viewer-zoom" aria-live="polite">100%</span>
+    <button class="raised" data-zoom="in" aria-label="放大">＋</button>
+    <button class="raised" data-zoom="1">適合</button>
+    <button class="raised" data-zoom="2">200%</button>
+    <button class="raised" data-zoom="3">300%</button>
+    <button class="raised" data-zoom="px" title="以圖片原始像素顯示">1:1</button>
+    <a class="raised" id="viewer-orig" href="#" target="_blank" rel="noopener">原圖 ↗</a>
+    <span class="vhint">點圖放大・拖曳移動・Ctrl+滾輪縮放</span>
+  </div>
 
 <script>
 (() => {
@@ -766,15 +786,90 @@ dialog.viewer img { display: block; max-width: 100%; max-height: 80vh; margin: 4
   const tick = () => { const d = new Date(); clock.textContent = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
   tick(); setInterval(tick, 15000);
 
+  // Image viewer with zoom. Zoom is relative to "fit": 100% = whole image fits the stage.
   const viewer = document.getElementById('viewer');
   const vImg = document.getElementById('viewer-img');
+  const vStage = document.getElementById('viewer-stage');
+  const vZoom = document.getElementById('viewer-zoom');
+  const MAX_ZOOM = 8;
+  let fit = 1, zoom = 1;
+  const clamp = z => Math.min(Math.max(z, 1), Math.max(MAX_ZOOM, 1 / fit));
+
+  function zoomTo(z, cx, cy) {
+    if (!vImg.naturalWidth) return;
+    z = clamp(z);
+    const sr = vStage.getBoundingClientRect(), ir = vImg.getBoundingClientRect();
+    if (cx == null) { cx = sr.left + sr.width / 2; cy = sr.top + sr.height / 2; }
+    const fx = ir.width ? (cx - ir.left) / ir.width : .5, fy = ir.height ? (cy - ir.top) / ir.height : .5;
+    zoom = z;
+    vImg.style.width = Math.round(vImg.naturalWidth * fit * z) + 'px';
+    const nr = vImg.getBoundingClientRect();
+    vStage.scrollLeft += nr.left + Math.min(Math.max(fx, 0), 1) * nr.width - cx;
+    vStage.scrollTop += nr.top + Math.min(Math.max(fy, 0), 1) * nr.height - cy;
+    vZoom.textContent = Math.round(z * 100) + '%';
+    vStage.classList.toggle('zoomed', z > 1.01);
+    document.querySelectorAll('#viewer-bar [data-zoom]').forEach(b => {
+      const t = b.dataset.zoom === 'px' ? 1 / fit : +b.dataset.zoom;
+      b.classList.toggle('on', Math.abs(t - z) < .01);
+    });
+  }
+  function refit() {
+    if (!vImg.naturalWidth) return;
+    const r = vStage.getBoundingClientRect();
+    fit = Math.min((r.width - 2) / vImg.naturalWidth, (r.height - 2) / vImg.naturalHeight, 1);
+    zoomTo(zoom);
+  }
+
   document.querySelectorAll('figure img').forEach(img => img.addEventListener('click', () => {
+    zoom = 1; vImg.style.width = '0px';
+    vImg.onload = refit;
     vImg.src = img.src; vImg.alt = img.alt;
+    document.getElementById('viewer-orig').href = img.src;
     document.getElementById('viewer-title').textContent = img.getAttribute('src').split('/').pop() + ' — 圖片檢視器';
     viewer.showModal();
+    if (vImg.complete) refit();
   }));
   document.getElementById('viewer-close').addEventListener('click', () => viewer.close());
   viewer.addEventListener('click', e => { if (e.target === viewer) viewer.close(); });
+
+  document.getElementById('viewer-bar').addEventListener('click', e => {
+    const b = e.target.closest('[data-zoom]');
+    if (!b) return;
+    const v = b.dataset.zoom;
+    zoomTo(v === 'in' ? zoom * 1.25 : v === 'out' ? zoom / 1.25 : v === 'px' ? 1 / fit : +v);
+  });
+
+  // Mouse: drag to pan, click to toggle 200% at that spot. Touch keeps native scrolling.
+  let drag = null;
+  vStage.addEventListener('pointerdown', e => {
+    if (e.pointerType !== 'mouse' || e.button !== 0) return;
+    drag = { x: e.clientX, y: e.clientY, l: vStage.scrollLeft, t: vStage.scrollTop, moved: false };
+  });
+  addEventListener('pointermove', e => {
+    if (!drag) return;
+    const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    if (!drag.moved && Math.hypot(dx, dy) < 4) return;
+    drag.moved = true;
+    vStage.classList.add('dragging');
+    vStage.scrollLeft = drag.l - dx; vStage.scrollTop = drag.t - dy;
+  });
+  addEventListener('pointerup', () => { if (drag) setTimeout(() => { drag = null; }); vStage.classList.remove('dragging'); });
+  vStage.addEventListener('click', e => {
+    if (drag?.moved) return;
+    if (e.target !== vImg) return;
+    zoomTo(zoom > 1.01 ? 1 : 2, e.clientX, e.clientY);
+  });
+  vStage.addEventListener('wheel', e => {
+    if (!e.ctrlKey && !e.metaKey) return;  // trackpad pinch arrives as ctrl+wheel
+    e.preventDefault();
+    zoomTo(zoom * Math.exp(-e.deltaY * .002), e.clientX, e.clientY);
+  }, { passive: false });
+  viewer.addEventListener('keydown', e => {
+    if (e.key === '+' || e.key === '=') zoomTo(zoom * 1.25);
+    else if (e.key === '-' || e.key === '_') zoomTo(zoom / 1.25);
+    else if (e.key === '0') zoomTo(1);
+  });
+  addEventListener('resize', () => { if (viewer.open) refit(); });
 
   wins.forEach(w => { if (w.id !== 'w-readme') w.hidden = true; });
   const fromHash = location.hash.slice(1);
