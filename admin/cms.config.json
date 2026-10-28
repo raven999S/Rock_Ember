@@ -1,0 +1,40 @@
+{
+  "siteName": "石頭",
+  "siteRoot": "../",
+  "pages": [
+    { "path": "dossier.html", "label": "機密檔案（主頁）" }
+  ],
+  "assetsDir": "img",
+
+  "text": [".tag", ".btn", ".pbtn", ".lvl", ".ps"],
+  "locked": [".ctl", "#tasks", "#clock", "#out", "#sh", ".decrypt", "#viewer", ".eq", ".icon svg"],
+
+  "repeat": [
+    { "selector": ".win", "label": "視窗", "title": "attr:data-title" },
+    { "selector": "figure", "label": "圖片框" },
+    { "selector": ".player", "label": "播放器" },
+    { "selector": "details", "label": "摺疊檔案", "title": "text:summary" },
+    { "selector": "dl.spec > dt", "label": "設定欄位", "span": 2, "title": "text" },
+    { "selector": ".tags > .tag", "label": "標籤" },
+    { "selector": ".links > .btn", "label": "連結按鈕" },
+    { "selector": ".icons > .icon", "label": "桌面圖示" },
+    { "selector": ".menu li", "label": "選單項目" },
+    { "selector": "blockquote", "label": "引言" },
+    { "selector": "li", "label": "清單項目" },
+    { "selector": "p", "label": "段落" },
+    { "selector": "h3, h4", "label": "小標題" }
+  ],
+
+  "fields": [
+    { "selector": ".win", "attr": "data-title", "label": "工作列上顯示的名稱" },
+    { "selector": ".icon, .menu button", "attr": "data-open", "label": "點了要打開的視窗 id" }
+  ],
+
+  "outline": [
+    { "selector": ".win", "label": "attr:data-title", "reveal": ".screen" }
+  ],
+
+  "github": { "owner": "raven999S", "repo": "Rock_Ember", "branch": "main", "dir": "" },
+  "publish": { "default": "github" },
+  "ui": { "theme": "site", "side": "right", "density": "comfy", "outline": true }
+}

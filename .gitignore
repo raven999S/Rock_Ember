@@ -1,3 +1,4 @@
 commission.html
 terminal.html
-.claude/
+.claude/*
+!.claude/skills/
