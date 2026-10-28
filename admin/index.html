@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>內容後台</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Noto+Sans+TC:wght@400;700&display=swap">
+<link rel="stylesheet" href="theme.css">
+</head>
+<body>
+<div class="cms" id="cms">
+
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark" aria-hidden="true">✎</span><span id="site-name">內容後台</span></div>
+
+    <label class="page-pick">
+      <span class="sr">頁面</span>
+      <select id="page-select"></select>
+    </label>
+
+    <div class="seg" role="radiogroup" aria-label="模式">
+      <button id="mode-edit" role="radio" aria-checked="true" title="編輯模式：點文字直接打字、點圖片替換（Ctrl/⌘+E 切換）">✎ 編輯</button>
+      <button id="mode-play" role="radio" aria-checked="false" title="操作模式：像訪客一樣點按鈕、開視窗，找到想改的地方再切回編輯">☝ 操作</button>
+    </div>
+
+    <div class="seg" aria-label="裝置寬度">
+      <button data-device="full" aria-pressed="true" title="桌機">▭</button>
+      <button data-device="768" aria-pressed="false" title="平板 768px">▯</button>
+      <button data-device="390" aria-pressed="false" title="手機 390px">▮</button>
+    </div>
+
+    <div class="tools">
+      <button id="undo" title="復原（Ctrl/⌘+Z）" disabled>↶</button>
+      <button id="redo" title="重做（Ctrl/⌘+Shift+Z）" disabled>↷</button>
+      <button id="ui-btn" title="自訂後台外觀">◐</button>
+    </div>
+
+    <div class="status" id="status" aria-live="polite">載入中…</div>
+    <button class="primary" id="publish-btn" title="發佈（Ctrl/⌘+S）">發佈</button>
+  </header>
+
+  <aside class="panel panel-outline" aria-label="頁面結構">
+    <h2>頁面結構</h2>
+    <p class="muted small">點一下跳過去；隱藏的區塊也會被打開來編輯。</p>
+    <ul id="outline" class="outline"></ul>
+  </aside>
+
+  <main class="stage" id="stage">
+    <div class="banner" id="banner" hidden></div>
+    <div class="device" id="device">
+      <iframe id="frame" title="網站預覽（可直接編輯）"></iframe>
+    </div>
+    <div class="crumbs" id="crumbs"></div>
+  </main>
+
+  <aside class="panel panel-inspect" aria-label="屬性">
+    <div id="inspector"></div>
+  </aside>
+</div>
+
+<div class="toast" id="toast" role="status" hidden></div>
+
+<!-- Publish dialog -->
+<dialog class="modal" id="publish-dlg">
+  <form method="dialog" class="modal-body" id="publish-form">
+    <h2>發佈修改</h2>
+    <p class="muted" id="publish-summary"></p>
+
+    <fieldset class="targets">
+      <legend>發佈到</legend>
+      <label class="target"><input type="radio" name="target" value="folder"><span><b>本機專案資料夾</b><small>直接寫回電腦上的檔案（Chrome / Edge）。之後再自己 git commit。</small></span></label>
+      <label class="target"><input type="radio" name="target" value="github"><span><b>GitHub</b><small>直接提交到儲存庫，GitHub Pages 約一分鐘後更新。</small></span></label>
+      <label class="target"><input type="radio" name="target" value="download"><span><b>下載檔案</b><small>下載改好的 HTML（與新圖片），自己放回專案。</small></span></label>
+    </fieldset>
+
+    <div class="target-opts" data-for="folder">
+      <p class="small" id="folder-state"></p>
+      <button type="button" id="folder-pick">選擇網站根目錄…</button>
+    </div>
+
+    <div class="target-opts" data-for="github">
+      <div class="row3">
+        <label>擁有者<input id="gh-owner" autocomplete="off"></label>
+        <label>儲存庫<input id="gh-repo" autocomplete="off"></label>
+        <label>分支<input id="gh-branch" autocomplete="off"></label>
+      </div>
+      <label>網站在儲存庫中的子資料夾（根目錄留空）<input id="gh-dir" autocomplete="off" placeholder="例如 docs"></label>
+      <label>存取權杖（Fine-grained token，只需此儲存庫的 Contents 讀寫權限）<input id="gh-token" type="password" autocomplete="off"></label>
+      <label class="check"><input type="checkbox" id="gh-remember"> 在這台電腦記住權杖</label>
+      <label>提交訊息<input id="gh-msg" autocomplete="off"></label>
+    </div>
+
+    <div class="modal-actions">
+      <button value="cancel" formnovalidate>取消</button>
+      <button class="primary" id="publish-go" value="go">發佈</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- UI customiser -->
+<dialog class="modal" id="ui-dlg">
+  <form method="dialog" class="modal-body">
+    <h2>後台外觀</h2>
+    <label>主題
+      <select id="ui-theme">
+        <option value="site">配合網站</option>
+        <option value="light">明亮</option>
+        <option value="dark">深色</option>
+        <option value="paper">紙張</option>
+      </select>
+    </label>
+    <label>強調色 <input type="color" id="ui-accent"></label>
+    <label>屬性面板位置
+      <select id="ui-side"><option value="right">右邊</option><option value="left">左邊</option></select>
+    </label>
+    <label>介面密度
+      <select id="ui-density"><option value="comfy">寬鬆</option><option value="compact">緊湊</option></select>
+    </label>
+    <label class="check"><input type="checkbox" id="ui-outline"> 顯示頁面結構面板</label>
+    <div class="modal-actions">
+      <button type="button" id="ui-reset">還原預設</button>
+      <button class="primary" value="ok">完成</button>
+    </div>
+  </form>
+</dialog>
+
+<input type="file" id="file-input" accept="image/*" hidden>
+<script type="module" src="cms.js"></script>
+</body>
+</html>
