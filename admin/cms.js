@@ -519,6 +519,11 @@ function insertHTML(parent, html, ref, where = 'after') {
     if (!ref) parent.append(...roots);
     else if (where === 'after') ref.after(...roots);
     else ref.before(...roots);
+    // Inside a parent that is itself new, the live DOM is what gets saved: copy the neighbour's indentation.
+    if (!arr && ref) {
+      const ws = ref.previousSibling?.nodeType === 3 && /^\s+$/.test(ref.previousSibling.data) ? ref.previousSibling.data : null;
+      if (ws) for (const r of roots) r.before(S.doc.createTextNode(ws));
+    }
   });
   return ok ? roots : [];
 }
@@ -538,11 +543,7 @@ async function insertBlock(ins) {
   const start = S.sel?.img || S.sel?.block || S.sel?.el;
   const anchor = start && insertAnchor(start, ins);
   if (!anchor) { toast('這個位置不能插入，請先點選要插在它後面的段落或圖片。', true); return; }
-  const imgVars = async file => {
-    const { url, dims } = await addAsset(file);
-    return { src: url, alt: file.name.replace(/\.[^.]+$/, ''), w: dims ? String(dims[0]) : '', h: dims ? String(dims[1]) : '' };
-  };
-  let html;
+  let html, short = 0;
   if (ins.item) {
     // Several pictures at once: `item` is filled once per file and joined into `{items}`.
     let files = await pickImage(true);
@@ -551,7 +552,7 @@ async function insertBlock(ins) {
     const items = [];
     for (const f of files) items.push(fillTpl(ins.item, await imgVars(f)));
     html = ins.html.replace('{items}', items.join('\n'));
-    if (ins.images && files.length < ins.images) setTimeout(() => toast(`只選了 ${files.length} 張。要補圖時，點這張圖再按「＋ 圖片」。選檔時按住 Ctrl（Mac 是 ⌘）可以一次選多張。`), 1600);
+    if (ins.images && files.length < ins.images) short = files.length;
   } else if (ins.image) {
     const [file] = await pickImage();
     if (!file) return;
@@ -560,6 +561,7 @@ async function insertBlock(ins) {
   endEdit();
   const roots = insertHTML(anchor.parentElement, html, anchor, 'after');
   if (!roots.length) return;
+  if (short) offerMore(roots[0], ins, short);
   const first = roots[0];
   first.scrollIntoView({ block: 'nearest' });
   const target = textBlock(first.querySelector('figcaption') || first) || first;
@@ -569,6 +571,31 @@ async function insertBlock(ins) {
 }
 
 // Resolves to an array of the chosen image files (empty when cancelled).
+async function imgVars(file) {
+  const { url, dims } = await addAsset(file);
+  return { src: url, alt: file.name.replace(/\.[^.]+$/, ''), w: dims ? String(dims[0]) : '', h: dims ? String(dims[1]) : '' };
+}
+
+// A multi-picture insert got fewer pictures than it holds (often a double-click in the file
+// dialog, which picks just one): offer a button that picks the rest into the same row.
+function offerMore(container, ins, have) {
+  const left = ins.images - have;
+  banner(`「${ins.label}」目前 ${have} 張，還可以再放 ${left} 張。（在選檔視窗按住 Ctrl／⌘ 點選可以一次選多張；雙擊檔案只會選到一張）`, [
+    ['＋ 選下一張圖片', async () => {
+      const files = (await pickImage(true)).slice(0, left);
+      const c = live(idOf(container)) || container;
+      if (!files.length || !c.isConnected) return;
+      const items = [];
+      for (const f of files) items.push(fillTpl(ins.item, await imgVars(f)));
+      const roots = insertHTML(c, items.join('\n'), c.lastElementChild, 'after');
+      roots[0]?.scrollIntoView({ block: 'nearest' });
+      if (have + files.length < ins.images) offerMore(c, ins, have + files.length);
+      else toast(`${ins.label}的圖片都放好了。`);
+    }, true],
+    ['先這樣', () => {}]
+  ]);
+}
+
 function pickImage(multiple = false) {
   return new Promise(res => {
     const fi = $('file-input');
