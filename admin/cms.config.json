@@ -24,7 +24,8 @@
     ".decrypt",
     "#viewer",
     ".eq",
-    ".icon svg"
+    ".icon svg",
+    ".tipbox"
   ],
   "repeat": [
     {
@@ -98,6 +99,18 @@
       "selector": ".icon, .menu button",
       "attr": "data-open",
       "label": "點了要打開的視窗 id"
+    },
+    {
+      "selector": ".tip",
+      "attr": "data-tip",
+      "label": "氣泡裡的說明文字（可以換行）",
+      "type": "textarea"
+    },
+    {
+      "selector": ".tip",
+      "attr": "data-tip-img",
+      "label": "氣泡裡的圖片（可不放）",
+      "type": "image"
     }
   ],
   "outline": [
@@ -176,6 +189,20 @@
           "html": "<li><button data-open=\"{id}\">{title}</button></li>"
         }
       ]
+    }
+  ],
+  "wraps": [
+    {
+      "label": "💬 補充說明",
+      "name": "補充說明",
+      "title": "先選取文字，再按這個，滑鼠移上去會跳出說明氣泡",
+      "tag": "span",
+      "selector": ".tip",
+      "attrs": {
+        "class": "tip",
+        "tabindex": "0",
+        "data-tip": "補充說明文字"
+      }
     }
   ]
 }

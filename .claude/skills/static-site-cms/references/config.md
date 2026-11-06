@@ -28,6 +28,12 @@
     { "selector": "img.hero", "attr": "title", "label": "滑鼠提示", "type": "textarea" }
   ],
 
+  "wraps": [                        // 文字卡片上的按鈕：把選取的字包進一個元素（例如滑鼠移上去的補充說明）
+    { "label": "💬 補充說明", "name": "補充說明", "selector": ".tip", "tag": "span",
+      "attrs": { "class": "tip", "tabindex": "0", "data-tip": "補充說明文字" } }
+  ],                                // selector 符合的元素選到時會出現「移除…」；它的屬性用 fields 編輯
+                                    // fields 的 "type": "image" 會變成選圖按鈕（例如 data-tip-img）
+
   "outline": [                      // 左側「頁面結構」；點了會捲過去並解除隱藏
     { "selector": "section[id]", "label": "text:h2", "reveal": ".body" }
   ],

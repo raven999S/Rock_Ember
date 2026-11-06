@@ -225,6 +225,13 @@ ul.plain li::before { content: "* "; color: var(--acc); font-family: var(--font-
 .menu li button:hover, .menu li button:focus-visible { background: var(--title-2); }
 .menu hr { border: 0; border-top: 1px solid var(--lo); border-bottom: 1px solid var(--hi); margin: 4px 2px; }
 
+/* Hover notes: <span class="tip" data-tip="…" data-tip-img="img/…">term</span> pops a small window with the note and picture. */
+.tip { background: rgb(180 180 180 / .14); border-bottom: 1px dashed var(--acc); padding: 0 2px; cursor: help; }
+.tip:hover, .tip:focus-visible { background: rgb(180 180 180 / .28); color: var(--hi-text); }
+.tipbox { position: fixed; z-index: 30; width: max-content; max-width: min(340px, calc(100vw - 16px)); padding: 3px; pointer-events: none; color: var(--fg); font-size: 13.5px; line-height: 1.7; }
+.tipbox img { display: block; max-width: 100%; max-height: 240px; margin: 0 auto 3px; background: var(--scr); }
+.tipbox .tiptext { background: var(--scr); padding: 7px 10px; white-space: pre-line; box-shadow: inset 1px 1px 0 var(--edge), inset -1px -1px 0 var(--hi); }
+
 dialog.viewer { padding: 3px; border: 0; width: min(1400px, 96vw); max-width: none; background: var(--face); color: var(--chrome-ink); }
 dialog.viewer::backdrop { background: rgb(10 10 10 / .78); }
 /* The stage is a scroll box; zooming sets the image's width and the stage scrolls around it. */
@@ -881,6 +888,49 @@ dialog.viewer::backdrop { background: rgb(10 10 10 / .78); }
     else if (e.key === '0') zoomTo(1);
   });
   addEventListener('resize', () => { if (viewer.open) refit(); });
+
+  // Hover notes. Delegated, so notes added later (e.g. in the admin editor) work too.
+  // Mouse: hover. Touch: tap to toggle. Keyboard: focus. Nothing is written onto the .tip itself,
+  // so the admin editor never saves hover state into the page.
+  const tipBox = document.createElement('div');
+  tipBox.className = 'tipbox raised';
+  tipBox.setAttribute('role', 'tooltip');
+  tipBox.hidden = true;
+  document.body.appendChild(tipBox);
+  let tipFor = null, lastPointer = 'mouse';
+  function placeTip() {
+    if (!tipFor) return;
+    const rects = tipFor.getClientRects(), r = rects[0] || tipFor.getBoundingClientRect(), b = tipBox.getBoundingClientRect(), m = 8;
+    const x = Math.min(Math.max(r.left, m), innerWidth - b.width - m);
+    let y = r.bottom + 8;
+    if (y + b.height > innerHeight - m && r.top - b.height - 8 > m) y = r.top - b.height - 8;
+    tipBox.style.left = x + 'px'; tipBox.style.top = y + 'px';
+  }
+  function showTip(t) {
+    if (tipFor === t) return;
+    hideTip();
+    const text = t.dataset.tip || '', img = t.dataset.tipImg;
+    if (!text && !img) return;
+    if (img) { const i = new Image(); i.alt = ''; i.onload = placeTip; i.src = img; tipBox.append(i); }
+    if (text) { const d = document.createElement('div'); d.className = 'tiptext'; d.textContent = text; tipBox.append(d); }
+    tipFor = t;
+    tipBox.hidden = false; placeTip();
+  }
+  function hideTip() { tipFor = null; tipBox.hidden = true; tipBox.replaceChildren(); }
+  document.addEventListener('pointerdown', e => { lastPointer = e.pointerType; }, true);
+  document.addEventListener('keydown', () => { lastPointer = 'key'; }, true);
+  document.addEventListener('pointerover', e => { const t = e.target.closest?.('.tip'); if (t && e.pointerType === 'mouse') showTip(t); });
+  document.addEventListener('pointerout', e => { if (e.pointerType === 'mouse' && tipFor && !tipFor.contains(e.relatedTarget)) hideTip(); });
+  document.addEventListener('click', e => {
+    const t = e.target.closest?.('.tip');
+    if (t && lastPointer !== 'mouse') { tipFor === t ? hideTip() : showTip(t); return; }
+    if (!t && tipFor && lastPointer !== 'mouse') hideTip();
+  });
+  document.addEventListener('focusin', e => { if (lastPointer === 'key' && e.target.matches?.('.tip')) showTip(e.target); });
+  document.addEventListener('focusout', e => { if (e.target === tipFor) hideTip(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') hideTip(); });
+  addEventListener('scroll', placeTip, { passive: true, capture: true });
+  addEventListener('resize', placeTip);
 
   wins.forEach(w => { if (w.id !== 'w-readme') w.hidden = true; });
   const fromHash = location.hash.slice(1);

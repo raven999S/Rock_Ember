@@ -24,7 +24,7 @@ const SPLIT_ON_ENTER = new Set(['P', 'LI']);
 
 const DEFAULTS = {
   siteName: '', siteRoot: '../', pages: [], assetsDir: 'img',
-  text: [], locked: [], repeat: [], fields: [], outline: [], inserts: [], create: [],
+  text: [], locked: [], repeat: [], fields: [], outline: [], inserts: [], create: [], wraps: [],
   github: { owner: '', repo: '', branch: 'main', dir: '' },
   publish: { default: 'folder' },
   ui: { theme: 'light', accent: '', side: 'right', density: 'comfy', outline: true }
@@ -236,7 +236,7 @@ function clean(el, outer) {
     if (e.hasAttribute('data-cms-editing')) { e.removeAttribute('contenteditable'); e.removeAttribute('data-cms-editing'); }
     e.removeAttribute('data-cms-id');
     if (e.getAttribute('style') === '') e.removeAttribute('style');
-    for (const a of ['src', 'href', 'poster']) { const v = e.getAttribute(a); if (v && S.blobs.has(v)) e.setAttribute(a, S.blobs.get(v)); }
+    for (const a of [...e.attributes]) if (S.blobs.has(a.value)) e.setAttribute(a.name, S.blobs.get(a.value));
   }
   return outer ? c.outerHTML : c.innerHTML;
 }
@@ -789,8 +789,16 @@ function attachFrame() {
   d.addEventListener('selectionchange', () => {
     if (!S.editing || !S.sel) return;
     const n = w.getSelection().anchorNode;
-    const a = (n?.nodeType === 1 ? n : n?.parentElement)?.closest('a') || null;
-    if (a !== S.sel.link) { S.sel.link = a; renderInspector(); }
+    const at = n?.nodeType === 1 ? n : n?.parentElement;
+    const a = at?.closest('a') || null;
+    const wsel = S.cfg.wraps.map(x => x.selector).filter(Boolean).join(',');
+    const wrapEl = (wsel && at?.closest(wsel)) || null;
+    const curWrap = (wsel && S.sel.el?.closest?.(wsel)) || null;
+    if (a !== S.sel.link || wrapEl !== curWrap) {
+      S.sel.link = a;
+      if (wrapEl !== curWrap) S.sel.el = wrapEl || S.editing.el;
+      renderInspector();
+    }
   });
   w.addEventListener('scroll', reposition, true);
   w.addEventListener('resize', reposition);
@@ -895,6 +903,52 @@ function attrInput(el, name, { multiline } = {}) {
   return inp;
 }
 
+// An attribute that holds an image path (e.g. data-tip-img): pick, preview, remove.
+function imageField(el, f) {
+  const v = el.getAttribute(f.attr);
+  const shown = v && (S.blobs.has(v) ? v : new URL(v, pageURL(S.page.path)).href);
+  const choose = async () => {
+    const file = await pickImage();
+    if (!file) return;
+    const { rel, url } = await addAsset(file);
+    setAttr(el, f.attr, rel, url);
+    renderInspector();
+  };
+  return h('div', { class: 'field' },
+    h('div', { class: 'small muted' }, f.label || f.attr),
+    shown ? h('img', { class: 'thumb', src: shown, alt: '' }) : null,
+    h('div', { class: 'row' },
+      h('button', { onclick: choose }, v ? '更換圖片…' : '選擇圖片…'),
+      v ? h('button', { class: 'danger', onclick: () => { setAttr(el, f.attr, null); renderInspector(); } }, '移除圖片') : null));
+}
+
+// Wrap the selected words in an element (e.g. a hover note).
+function wrapSelection(w) {
+  const sel = S.win.getSelection();
+  if (!S.editing || !sel.rangeCount || sel.isCollapsed) { toast('先在網頁上選取要加上效果的文字，再按一次。', true); return; }
+  const r = sel.getRangeAt(0);
+  if (!S.editing.el.contains(r.commonAncestorContainer)) return;
+  const el = S.doc.createElement(w.tag || 'span');
+  for (const [k, v] of Object.entries(w.attrs || {})) el.setAttribute(k, v);
+  el.appendChild(r.extractContents());
+  r.insertNode(el);
+  sel.selectAllChildren(el);
+  touchText(el);
+  changed();
+  S.sel = { ...S.sel, el };
+  renderInspector();
+}
+
+function unwrap(el) {
+  const block = el.parentElement;
+  if (S.editing?.el !== block.closest('[data-cms-editing]')) { const tb = textBlock(el); if (tb) beginEdit(tb); }
+  el.replaceWith(...el.childNodes);
+  touchText(block);
+  endEdit();
+  changed();
+  select(block, pick(block));
+}
+
 function fmtButton(label, title, fn) {
   return h('button', { title, onmousedown: e => e.preventDefault(), onclick: () => { if (!S.editing) return; S.editing.el.focus(); fn(); touchText(S.editing.el); changed(); } }, label);
 }
@@ -924,7 +978,8 @@ function renderInspector() {
         fmtButton(h('i', {}, 'I'), '斜體', () => S.doc.execCommand('italic')),
         fmtButton(h('s', {}, 'S'), '刪除線', () => S.doc.execCommand('strikeThrough')),
         fmtButton('🔗', '加上連結', () => { const u = prompt('連結網址'); if (u) S.doc.execCommand('createLink', false, u); }),
-        fmtButton('⌫', '清除格式', () => S.doc.execCommand('removeFormat'))),
+        fmtButton('⌫', '清除格式', () => S.doc.execCommand('removeFormat')),
+        S.cfg.wraps.map(w => fmtButton(w.label, w.title || '先選取文字，再按這個', () => wrapSelection(w)))),
       h('p', { class: 'small muted' }, '直接在網頁上打字就好。'));
     if (id && !isFresh(id) && !S.text.has(id)) {
       const node = S.byId.get(id), l = node.sourceCodeLocation;
@@ -960,13 +1015,22 @@ function renderInspector() {
       h('label', {}, '圖片路徑', attrInput(img, 'src'))));
   }
 
+  // Elements without an id (e.g. a note wrapped around a few words) are saved through their text block.
+  const editable = e => !e.closest(LOCKED_SEL) && (e.hasAttribute('data-cms-id') || !!e.parentElement?.closest('[data-cms-id]'));
   const fieldEls = [];
   for (let e = sel.el; e && e !== S.doc.body; e = e.parentElement) {
-    for (const f of S.cfg.fields) if (e.matches(f.selector) && e.hasAttribute('data-cms-id')) fieldEls.push([e, f]);
+    for (const f of S.cfg.fields) if (e.matches(f.selector) && editable(e)) fieldEls.push([e, f]);
   }
   if (fieldEls.length) {
+    const wraps = new Set();
     box.append(h('div', { class: 'card' }, h('h3', {}, '其他設定'),
-      fieldEls.map(([e, f]) => h('label', {}, f.label || f.attr, attrInput(e, f.attr, { multiline: f.type === 'textarea' })))));
+      fieldEls.map(([e, f]) => f.type === 'image' ? imageField(e, f) : h('label', {}, f.label || f.attr, attrInput(e, f.attr, { multiline: f.type === 'textarea' }))),
+      fieldEls.map(([e]) => {
+        const w = S.cfg.wraps.find(x => x.selector && e.matches(x.selector));
+        if (!w || wraps.has(e)) return null;
+        wraps.add(e);
+        return h('div', { class: 'row' }, h('button', { class: 'danger', onclick: () => unwrap(e) }, '移除' + (w.name || w.label)));
+      })));
   }
 
   const inserts = S.cfg.inserts.map(ins => [ins, insertAnchor(sel.img || sel.block || sel.el, ins)]).filter(([, a]) => a);
