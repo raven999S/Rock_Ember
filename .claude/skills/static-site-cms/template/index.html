@@ -125,6 +125,11 @@
 </dialog>
 
 <input type="file" id="file-input" accept="image/*" hidden>
-<script type="module" src="cms.js"></script>
+<script type="module">
+  // Always load the newest editor code: GitHub Pages lets browsers cache files for up to 10 minutes.
+  const v = Date.now();
+  document.querySelector('link[href="theme.css"]').href = 'theme.css?v=' + v;
+  import('./cms.js?v=' + v);
+</script>
 </body>
 </html>
