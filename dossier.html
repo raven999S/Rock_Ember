@@ -127,6 +127,10 @@ figcaption::before { content: "// "; }
 .btn:hover { background: var(--acc); color: var(--scr); }
 
 .profile { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 22px; align-items: start; }
+/* Character sheet: portrait on the left, spec list on the right. Any picture is cropped to 3:4. */
+.profile.has-portrait { grid-template-columns: minmax(0, 220px) minmax(0, 1fr); margin-bottom: 18px; }
+.portrait { margin: 0; }
+.portrait img { aspect-ratio: 3 / 4; object-fit: cover; }
 dl.spec { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0 14px; margin: 0; font-size: 14px; }
 dl.spec dt, dl.spec dd { margin: 0; padding: 4px 0; border-bottom: 1px dashed var(--line); }
 dl.spec dt { font-family: var(--font-mono); color: var(--dim); white-space: nowrap; }
@@ -244,6 +248,7 @@ dialog.viewer::backdrop { background: rgb(10 10 10 / .78); }
   .screen { padding: 14px 12px 12px; }
   .clock { display: none; }
 }
+@media (max-width: 560px) { .profile.has-portrait { grid-template-columns: minmax(0, 1fr); } .profile.has-portrait .portrait { max-width: 200px; } }
 @media (max-width: 460px) { .grid2 { grid-template-columns: minmax(0, 1fr); } .lvl { display: none; } }
 
 /* Photos rest in black-and-white and bloom back to color on hover; touch screens have no hover, so they keep full color. */
@@ -312,8 +317,8 @@ dialog.viewer::backdrop { background: rgb(10 10 10 / .78); }
       <div class="screen has-deco">
       <div class="prompt"><span class="ps">C:\ARCADIA&gt;</span><h2>open arkose.pro</h2></div>
       <div class="pane sunken">
-        <div class="profile">
-          <figure class="frame sunken" style="margin:0"><img src="img/poster.jpg" alt="暴君鬥士宣傳圖" width="1024" height="576" loading="lazy"><figcaption>鬥士宣傳圖（後方的剪影是貝西摩斯）</figcaption></figure>
+        <div class="profile has-portrait">
+          <figure class="frame sunken portrait"><img src="img/portrait-placeholder.svg" alt="阿爾科斯大頭照" width="600" height="800" loading="lazy"></figure>
           <dl class="spec">
             <dt>姓名</dt><dd>阿爾科斯 Arkose</dd>
             <dt>鬥士名</dt><dd>暴君 The Tyrant</dd>
@@ -325,6 +330,7 @@ dialog.viewer::backdrop { background: rgb(10 10 10 / .78); }
             <dt>動物設</dt><dd>豬（貝西摩斯幼體像是小豬一樣）、牛（變身的模樣也挺像牛的）</dd>
           </dl>
         </div>
+        <figure class="frame sunken"><img src="img/poster.jpg" alt="暴君鬥士宣傳圖" width="1024" height="576" loading="lazy"><figcaption>鬥士宣傳圖（後方的剪影是貝西摩斯）</figcaption></figure>
 
         <h4>外表</h4>
         <p>灰色後梳背頭半扎馬尾，前方有兩條散下來的瀏海，右眼與鼻樑有疤痕，右臉白色紋身，淺紫色眼睛。</p>
@@ -429,15 +435,18 @@ dialog.viewer::backdrop { background: rgb(10 10 10 / .78); }
       <div class="screen">
       <div class="prompt"><span class="ps">C:\ARCADIA&gt;</span><h2>open edgar.pro</h2></div>
       <div class="pane sunken">
-        <dl class="spec">
-          <dt>姓名</dt><dd>埃德加．福科尼耶 Edgar・Fauconnier</dd>
-          <dt>出生地</dt><dd>原初世界．伊修加德</dd>
-          <dt>種族</dt><dd>精靈族男性</dd>
-          <dt>年齡</dt><dd><span class="num">30</span> 歲</dd>
-          <dt>職業</dt><dd>光之戰士（冒險者）</dd>
-          <dt>身高</dt><dd><span class="num">207</span> 公分</dd>
-          <dt>動物設</dt><dd>郊狼、狐狸（跟前者外觀相似）、黃金獵犬</dd>
-        </dl>
+        <div class="profile has-portrait">
+          <figure class="frame sunken portrait"><img src="img/portrait-placeholder.svg" alt="埃德加大頭照" width="600" height="800" loading="lazy"></figure>
+          <dl class="spec">
+            <dt>姓名</dt><dd>埃德加．福科尼耶 Edgar・Fauconnier</dd>
+            <dt>出生地</dt><dd>原初世界．伊修加德</dd>
+            <dt>種族</dt><dd>精靈族男性</dd>
+            <dt>年齡</dt><dd><span class="num">30</span> 歲</dd>
+            <dt>職業</dt><dd>光之戰士（冒險者）</dd>
+            <dt>身高</dt><dd><span class="num">207</span> 公分</dd>
+            <dt>動物設</dt><dd>郊狼、狐狸（跟前者外觀相似）、黃金獵犬</dd>
+          </dl>
+        </div>
 
         <h4>外觀</h4>
         <p>淡金色的微捲髮與橘黃雙眼、被衣物遮擋的身上有許多疤痕。為什麼只有身體有疤痕呢，因為他懶得治療臉以外的地方。</p>
