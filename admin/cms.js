@@ -24,7 +24,7 @@ const SPLIT_ON_ENTER = new Set(['P', 'LI']);
 
 const DEFAULTS = {
   siteName: '', siteRoot: '../', pages: [], assetsDir: 'img',
-  text: [], locked: [], repeat: [], fields: [], outline: [],
+  text: [], locked: [], repeat: [], fields: [], outline: [], inserts: [], create: [],
   github: { owner: '', repo: '', branch: 'main', dir: '' },
   publish: { default: 'folder' },
   ui: { theme: 'light', accent: '', side: 'right', density: 'comfy', outline: true }
@@ -235,6 +235,7 @@ function clean(el, outer) {
   for (const e of [c, ...c.querySelectorAll('*')]) {
     if (e.hasAttribute('data-cms-editing')) { e.removeAttribute('contenteditable'); e.removeAttribute('data-cms-editing'); }
     e.removeAttribute('data-cms-id');
+    if (e.getAttribute('style') === '') e.removeAttribute('style');
     for (const a of ['src', 'href', 'poster']) { const v = e.getAttribute(a); if (v && S.blobs.has(v)) e.setAttribute(a, S.blobs.get(v)); }
   }
   return outer ? c.outerHTML : c.innerHTML;
@@ -465,14 +466,131 @@ function duplicateItem(el, rule) {
   toast('已複製。新的區塊在發佈並重新整理後才會有網頁原本的互動效果。');
 }
 
+function removeEls(els) {
+  const byParent = new Map();
+  for (const e of els) if (e.isConnected && e.parentElement) (byParent.get(e.parentElement) || byParent.set(e.parentElement, []).get(e.parentElement)).push(e);
+  for (const [parent, list] of byParent) {
+    const ids = list.map(idOf);
+    structural(parent, arr => {
+      if (arr) arr.splice(0, arr.length, ...arr.filter(id => !ids.includes(id)));
+      list.forEach(e => e.remove());
+    });
+  }
+}
+
+// Elements elsewhere on the page that belong to this item (e.g. a menu entry that opens it).
+function linkedEls(el, rule) {
+  const id = el.id;
+  if (!id || !rule.linked) return [];
+  return rule.linked.flatMap(sel => [...S.doc.querySelectorAll(sel.replaceAll('{id}', CSS.escape(id)))]).filter(e => e.hasAttribute('data-cms-id') && !el.contains(e));
+}
+
 function deleteItem(el, rule) {
-  const g = group(el, rule), gids = g.map(idOf);
-  structural(el.parentElement, arr => {
-    if (arr) arr.splice(0, arr.length, ...arr.filter(id => !gids.includes(id)));
-    g.forEach(e => e.remove());
-  });
+  const extra = linkedEls(el, rule);
+  batch(() => removeEls([...group(el, rule), ...extra]));
   select(null);
-  toast('已刪除（可以按 ↶ 復原）');
+  toast(extra.length ? `已刪除（連同 ${extra.length} 個相關的按鈕／選單項目，可以按 ↶ 復原）` : '已刪除（可以按 ↶ 復原）');
+}
+
+// Collapse every undo entry pushed inside fn into one step.
+function batch(fn) {
+  const n = S.undo.length;
+  fn();
+  const ents = S.undo.splice(n);
+  if (!ents.length) return;
+  push({ undo: () => [...ents].reverse().forEach(e => e.undo()), redo: () => ents.forEach(e => e.redo()) });
+}
+
+// Insert new markup into a tracked parent: before `ref`, after it, or at the end when ref is null.
+function insertHTML(parent, html, ref, where = 'after') {
+  const t = S.doc.createElement('template');
+  t.innerHTML = html.trim();
+  const roots = [...t.content.children];
+  for (const r of roots) {
+    for (const e of [r, ...r.querySelectorAll('*')]) e.setAttribute('data-cms-id', 'n' + (++S.seq));
+    S.fresh.set(idOf(r), r);
+  }
+  const ok = structural(parent, arr => {
+    if (arr) {
+      let at = ref ? arr.indexOf(idOf(ref)) : -1;
+      at = at < 0 ? arr.length : where === 'after' ? at + 1 : at;
+      arr.splice(at, 0, ...roots.map(idOf));
+    }
+    if (!ref) parent.append(...roots);
+    else if (where === 'after') ref.after(...roots);
+    else ref.before(...roots);
+  });
+  return ok ? roots : [];
+}
+
+const fillTpl = (tpl, vars) => tpl.replace(/\{(\w+)\}/g, (m, k) => k in vars ? escHTML(vars[k]) : m);
+
+// The element a new block goes after: the selection or its nearest ancestor whose parent accepts it.
+function insertAnchor(start, ins) {
+  for (let e = start; e && e.parentElement && e !== S.doc.body; e = e.parentElement) {
+    const p = e.parentElement;
+    if (p.hasAttribute('data-cms-id') && !p.closest(LOCKED_SEL) && p.matches(ins.into || '*')) return e;
+  }
+  return null;
+}
+
+async function insertBlock(ins) {
+  const start = S.sel?.img || S.sel?.block || S.sel?.el;
+  const anchor = start && insertAnchor(start, ins);
+  if (!anchor) { toast('這個位置不能插入，請先點選要插在它後面的段落或圖片。', true); return; }
+  const vars = { src: '', alt: '', w: '', h: '' };
+  if (ins.image) {
+    const file = await pickImage();
+    if (!file) return;
+    const { url, dims } = await addAsset(file);
+    Object.assign(vars, { src: url, alt: file.name.replace(/\.[^.]+$/, ''), w: dims ? String(dims[0]) : '', h: dims ? String(dims[1]) : '' });
+  }
+  endEdit();
+  const roots = insertHTML(anchor.parentElement, fillTpl(ins.html, vars), anchor, 'after');
+  if (!roots.length) return;
+  const first = roots[0];
+  first.scrollIntoView({ block: 'nearest' });
+  const target = textBlock(first.querySelector('figcaption') || first) || first;
+  select(target, pick(target));
+  if (!ins.image && isTexty(target)) { beginEdit(target); setTimeout(() => { S.win.focus(); target.focus(); S.win.getSelection().selectAllChildren(target); }); }
+  toast(`已插入${ins.label}${ins.image ? '，說明文字可以直接點來改' : ''}。`);
+}
+
+function pickImage() {
+  return new Promise(res => {
+    const fi = $('file-input');
+    fi.value = '';
+    fi.onchange = () => res(fi.files[0] || null);
+    fi.oncancel = () => res(null);
+    fi.click();
+  });
+}
+
+// "New section" from the outline panel: the section itself plus companion markup (icons, menu entries).
+function createSection(rule) {
+  const title = prompt(rule.prompt || `新${rule.label}的名稱`, rule.defaultTitle || `新${rule.label}`);
+  if (!title) return;
+  const base = rule.idBase || 'section-new';
+  let id = base, n = 1;
+  while (S.doc.getElementById(id)) id = `${base}-${++n}`;
+  const vars = { id, title };
+  const place = spec => {
+    const parent = S.doc.querySelector(spec.into);
+    if (!parent || !parent.hasAttribute('data-cms-id')) { toast(`找不到「${spec.into}」，設定檔可能需要更新。`, true); return []; }
+    const ref = spec.before ? parent.querySelector(':scope > ' + spec.before) : null;
+    return insertHTML(parent, fillTpl(spec.html, vars), ref, ref ? 'before' : 'after');
+  };
+  let main = [];
+  batch(() => {
+    main = place(rule);
+    for (const also of rule.also || []) place(also);
+  });
+  if (!main.length) return;
+  renderOutline();
+  const sec = main[0];
+  sec.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  select(sec, { el: sec });
+  toast(`已新增「${title}」。內容直接點來改；發佈並重新整理後，網站原本的開關功能才會套用到它。`);
 }
 
 // Enter inside a paragraph / list item: split it into two siblings.
@@ -516,9 +634,8 @@ function assetName(file) {
   return (dir ? dir + '/' : '') + name;
 }
 
-async function replaceImage(img, file) {
-  if (!file || !file.type.startsWith('image/')) return;
-  if (file.size > 1.5e6) toast(`這張圖有 ${(file.size / 1e6).toFixed(1)} MB，建議先壓縮再上傳，網頁會比較快。`);
+// Register an image file to be published with the page; the preview uses a blob URL.
+async function addAsset(file) {
   const sitePath = assetName(file);
   const rel = relPath(dirOf(S.page.path), sitePath);
   const url = URL.createObjectURL(file);
@@ -526,6 +643,12 @@ async function replaceImage(img, file) {
   S.assets.set(sitePath, file);
   idb.set('asset:' + sitePath, file);
   const dims = await new Promise(res => { const i = new Image(); i.onload = () => res([i.naturalWidth, i.naturalHeight]); i.onerror = () => res(null); i.src = url; });
+  return { rel, url, dims };
+}
+
+async function replaceImage(img, file) {
+  if (!file || !file.type.startsWith('image/')) return;
+  const { rel, url, dims } = await addAsset(file);
   const id = idOf(img);
   const steps = [['src', rel, url]];
   if (dims && img.hasAttribute('width') && img.hasAttribute('height')) steps.push(['width', String(dims[0])], ['height', String(dims[1])]);
@@ -846,6 +969,12 @@ function renderInspector() {
       fieldEls.map(([e, f]) => h('label', {}, f.label || f.attr, attrInput(e, f.attr, { multiline: f.type === 'textarea' })))));
   }
 
+  const inserts = S.cfg.inserts.map(ins => [ins, insertAnchor(sel.img || sel.block || sel.el, ins)]).filter(([, a]) => a);
+  if (inserts.length) {
+    box.append(h('div', { class: 'card' }, h('h3', {}, '在這後面插入'),
+      h('div', { class: 'row' }, inserts.map(([ins]) => h('button', { onclick: () => insertBlock(ins) }, '＋ ' + ins.label)))));
+  }
+
   const items = [];
   for (let e = sel.el; e && e !== S.doc.body; e = e.parentElement) {
     const r = ruleFor(e);
@@ -878,13 +1007,14 @@ function renderOutline() {
   const ul = $('outline');
   ul.replaceChildren();
   const list = outlineEntries();
-  if (!list.length) { ul.append(h('li', { class: 'muted small' }, '（設定檔沒有列出區塊）')); return; }
+  if (!list.length) ul.append(h('li', { class: 'muted small' }, '（設定檔沒有列出區塊）'));
   for (const [e, o] of list) {
     const name = labelFor(e, o.label) || describe(e);
     const b = h('button', { onclick: () => reveal(e, o) }, h('span', { class: 'dot' }), name.slice(0, 40));
     b.dataset.target = idOf(e);
     ul.append(h('li', {}, b));
   }
+  for (const rule of S.cfg.create) ul.append(h('li', { class: 'add' }, h('button', { onclick: () => createSection(rule) }, '＋ 新增' + rule.label)));
   markOutline();
 }
 function markOutline() {

@@ -2,39 +2,175 @@
   "siteName": "石頭",
   "siteRoot": "../",
   "pages": [
-    { "path": "dossier.html", "label": "機密檔案（主頁）" }
+    {
+      "path": "dossier.html",
+      "label": "機密檔案（主頁）"
+    }
   ],
   "assetsDir": "img",
-
-  "text": [".tag", ".btn", ".pbtn", ".lvl", ".ps"],
-  "locked": [".ctl", "#tasks", "#clock", "#out", "#sh", ".decrypt", "#viewer", ".eq", ".icon svg"],
-
+  "text": [
+    ".tag",
+    ".btn",
+    ".pbtn",
+    ".lvl",
+    ".ps"
+  ],
+  "locked": [
+    ".ctl",
+    "#tasks",
+    "#clock",
+    "#out",
+    "#sh",
+    ".decrypt",
+    "#viewer",
+    ".eq",
+    ".icon svg"
+  ],
   "repeat": [
-    { "selector": ".win", "label": "視窗", "title": "attr:data-title" },
-    { "selector": "figure", "label": "圖片框" },
-    { "selector": ".player", "label": "播放器" },
-    { "selector": "details", "label": "摺疊檔案", "title": "text:summary" },
-    { "selector": "dl.spec > dt", "label": "設定欄位", "span": 2, "title": "text" },
-    { "selector": ".tags > .tag", "label": "標籤" },
-    { "selector": ".links > .btn", "label": "連結按鈕" },
-    { "selector": ".icons > .icon", "label": "桌面圖示" },
-    { "selector": ".menu li", "label": "選單項目" },
-    { "selector": "blockquote", "label": "引言" },
-    { "selector": "li", "label": "清單項目" },
-    { "selector": "p", "label": "段落" },
-    { "selector": "h3, h4", "label": "小標題" }
+    {
+      "selector": ".win",
+      "label": "視窗",
+      "title": "attr:data-title",
+      "linked": [
+        ".icons > [data-open=\"{id}\"]",
+        ".menu li:has(> [data-open=\"{id}\"])"
+      ]
+    },
+    {
+      "selector": "figure",
+      "label": "圖片框"
+    },
+    {
+      "selector": ".player",
+      "label": "播放器"
+    },
+    {
+      "selector": "details",
+      "label": "摺疊檔案",
+      "title": "text:summary"
+    },
+    {
+      "selector": "dl.spec > dt",
+      "label": "設定欄位",
+      "span": 2,
+      "title": "text"
+    },
+    {
+      "selector": ".tags > .tag",
+      "label": "標籤"
+    },
+    {
+      "selector": ".links > .btn",
+      "label": "連結按鈕"
+    },
+    {
+      "selector": ".icons > .icon",
+      "label": "桌面圖示"
+    },
+    {
+      "selector": ".menu li",
+      "label": "選單項目"
+    },
+    {
+      "selector": "blockquote",
+      "label": "引言"
+    },
+    {
+      "selector": "li",
+      "label": "清單項目"
+    },
+    {
+      "selector": "p",
+      "label": "段落"
+    },
+    {
+      "selector": "h3, h4",
+      "label": "小標題"
+    }
   ],
-
   "fields": [
-    { "selector": ".win", "attr": "data-title", "label": "工作列上顯示的名稱" },
-    { "selector": ".icon, .menu button", "attr": "data-open", "label": "點了要打開的視窗 id" }
+    {
+      "selector": ".win",
+      "attr": "data-title",
+      "label": "工作列上顯示的名稱"
+    },
+    {
+      "selector": ".icon, .menu button",
+      "attr": "data-open",
+      "label": "點了要打開的視窗 id"
+    }
   ],
-
   "outline": [
-    { "selector": ".win", "label": "attr:data-title", "reveal": ".screen" }
+    {
+      "selector": ".win",
+      "label": "attr:data-title",
+      "reveal": ".screen"
+    }
   ],
-
-  "github": { "owner": "raven999S", "repo": "Rock_Ember", "branch": "main", "dir": "" },
-  "publish": { "default": "github" },
-  "ui": { "theme": "site", "side": "right", "density": "comfy", "outline": true }
+  "github": {
+    "owner": "raven999S",
+    "repo": "Rock_Ember",
+    "branch": "main",
+    "dir": ""
+  },
+  "publish": {
+    "default": "github"
+  },
+  "ui": {
+    "theme": "site",
+    "side": "right",
+    "density": "comfy",
+    "outline": true
+  },
+  "inserts": [
+    {
+      "label": "圖片",
+      "image": true,
+      "into": ".pane, .prose, .intro, .grid2, details",
+      "html": "<figure class=\"frame sunken\"><img src=\"{src}\" alt=\"{alt}\" width=\"{w}\" height=\"{h}\" loading=\"lazy\"><figcaption>圖片說明</figcaption></figure>"
+    },
+    {
+      "label": "兩張並排",
+      "image": true,
+      "into": ".pane, .prose, .intro, details",
+      "html": "<div class=\"grid2\">\n          <figure class=\"frame sunken\"><img src=\"{src}\" alt=\"{alt}\" width=\"{w}\" height=\"{h}\" loading=\"lazy\"><figcaption>圖片說明</figcaption></figure>\n        </div>"
+    },
+    {
+      "label": "段落",
+      "into": ".pane, .prose, .intro, details",
+      "html": "<p>新的段落</p>"
+    },
+    {
+      "label": "小標題",
+      "into": ".pane, .prose",
+      "html": "<h4>新標題</h4>"
+    },
+    {
+      "label": "清單項目",
+      "into": "ul, ol",
+      "html": "<li>新項目</li>"
+    }
+  ],
+  "create": [
+    {
+      "label": "視窗",
+      "prompt": "新視窗的名稱（會顯示在標題列、桌面圖示與開始選單）",
+      "defaultTitle": "新檔案.txt",
+      "idBase": "w-new",
+      "into": "#stack",
+      "before": ".foot",
+      "html": "<section class=\"win raised\" id=\"{id}\" data-title=\"{title}\">\n      <div class=\"titlebar\"><span class=\"t\">{title}</span><div class=\"ctl\"><button class=\"raised\" data-min aria-label=\"最小化\">_</button><button class=\"raised\" data-close aria-label=\"關閉\">×</button></div></div>\n      <div class=\"screen\">\n      <div class=\"prompt\"><span class=\"ps\">C:\\ARCADIA&gt;</span><h2>open {title}</h2></div>\n      <div class=\"pane sunken\">\n        <p>在這裡輸入內容。點選段落後，可以從右側「在這後面插入」加入圖片、段落或小標題。</p>\n      </div>\n      <div class=\"status\"><div class=\"sunken\">{title}</div><div class=\"sunken\">EOF</div></div>\n    </div></section>",
+      "also": [
+        {
+          "into": ".icons",
+          "html": "<button class=\"icon\" data-open=\"{id}\"><svg><use href=\"#i-txt\"/></svg><span>{title}</span></button>"
+        },
+        {
+          "into": "#menu ul",
+          "before": "li:has(hr)",
+          "html": "<li><button data-open=\"{id}\">{title}</button></li>"
+        }
+      ]
+    }
+  ]
 }

@@ -16,7 +16,8 @@
   "locked": ["#clock", ".ticker"], // 永遠不能編輯（JS 會改寫或產生的區域）。script/style/svg/表單元素等已內建鎖定
 
   "repeat": [                       // 可上移／下移／複製／刪除的區塊，順序 = 判斷優先度無關，選取時會列出所有符合的祖先
-    { "selector": ".card", "label": "卡片", "title": "text:h3" },
+    { "selector": ".card", "label": "卡片", "title": "text:h3",
+      "linked": [".nav a[href=\"#{id}\"]"] },               // 刪除時一併刪掉指向它的元素（{id} = 這個區塊的 id）
     { "selector": "dl.spec > dt", "label": "欄位", "span": 2 },  // span: 一個單位包含後面幾個兄弟（dt+dd）
     { "selector": "p", "label": "段落" }
   ],
@@ -29,6 +30,21 @@
 
   "outline": [                      // 左側「頁面結構」；點了會捲過去並解除隱藏
     { "selector": "section[id]", "label": "text:h2", "reveal": ".body" }
+  ],
+
+  "inserts": [                      // 選取元素後，右側「在這後面插入」的按鈕
+    { "label": "圖片", "image": true, "into": "article, .content",   // image：先選圖檔；{src} {alt} {w} {h} 會自動填入
+      "html": "<figure><img src=\"{src}\" alt=\"{alt}\" width=\"{w}\" height=\"{h}\" loading=\"lazy\"><figcaption>圖片說明</figcaption></figure>" },
+    { "label": "段落", "into": "article, .content", "html": "<p>新的段落</p>" }
+  ],                                // into：新元素的父層必須符合的 selector；從選取處往上找第一個合格的位置，插在它後面
+
+  "create": [                       // 左側「頁面結構」底部的「＋ 新增…」按鈕
+    { "label": "章節", "prompt": "章節名稱", "defaultTitle": "新章節", "idBase": "sec-new",
+      "into": "main", "before": "footer",                       // 放進 into；有 before 就插在那個子元素前面，否則放最後
+      "html": "<section id=\"{id}\"><h2>{title}</h2><p>內容</p></section>",
+      "also": [                                                 // 同時要加的附屬元素（導覽連結、選單項目…），格式同上
+        { "into": "nav ul", "html": "<li><a href=\"#{id}\">{title}</a></li>" }
+      ] }
   ],
 
   "github": { "owner": "me", "repo": "site", "branch": "main", "dir": "" },  // dir：網站在 repo 的子資料夾（例如 docs）
@@ -50,6 +66,12 @@
 - **locked**：analyze.py「Selectors referenced」與「DOM writes」交叉比對；凡是 JS 會寫入文字或子元素的容器都鎖起來。只被 JS 切換 `hidden` / class 的元素**不用**鎖——那些執行時狀態本來就不會被存。
 - **repeat**：從使用者角度命名（「作品」比「div.card」好）。巢狀沒關係，右側會由內而外列出每一層。只放真的會想增刪排序的東西；`p`、`li` 這類通用的放最後當備援。
 - **outline**：預設隱藏的區塊（tab、modal、手風琴、視窗）一定要列，並用 `reveal` 指定內部也要解除 `hidden` 的元素；`<details>` 祖先會自動展開。
+
+## 插入與新增
+
+- `inserts` 與 `create` 的 `html` 要照抄網站裡同類元素的寫法（class、結構），新內容才會長得一樣。`{title}`、`{id}`、`{src}` 等變數會經過 HTML 跳脫。
+- 網站 JS 若在載入時才綁定事件（例如點圖放大、視窗開關、選單），新插入的元素要發佈後重新整理才有作用；畫布上會先以靜態樣子顯示。所以 `create` 的 `also` 要把 JS 依賴的入口（按鈕、選單、`data-*` 屬性）一起加上，並在 `repeat` 用 `linked` 讓刪除時一起清掉。
+- 新增的區塊、插入的元素會整段重新序列化（屬性順序、`data-x=""` 這類寫法可能和手寫的不同），其餘未動的原始碼仍逐字保留。
 
 ## 已知限制
 
