@@ -272,6 +272,7 @@ dialog.viewer::backdrop { background: rgb(10 10 10 / .78); }
     <button class="icon" data-open="w-wardrobe"><svg><use href="#i-folder"/></svg><span>衣櫃</span></button>
     <button class="icon" data-open="w-story"><svg><use href="#i-book"/></svg><span>兩人的故事</span></button>
     <button class="icon" data-open="w-world"><svg><use href="#i-globe"/></svg><span>第九世界.hlp</span></button>
+    <button class="icon" data-open="w-new"><svg><use href="#i-txt"></use></svg><span>兩人的互動</span></button>
   </nav>
 
   <main class="stack" id="stack">
@@ -520,6 +521,15 @@ dialog.viewer::backdrop { background: rgb(10 10 10 / .78); }
       </div>
       <div class="status"><div class="sunken">2 個物件</div><div class="sunken">點圖放大</div></div>
     </div></section>
+    <section class="win raised" id="w-new" data-title="兩人的互動.png">
+      <div class="titlebar"><span class="t">兩人的互動.png</span><div class="ctl"><button class="raised" data-min="" aria-label="最小化">_</button><button class="raised" data-close="" aria-label="關閉">×</button></div></div>
+      <div class="screen">
+      <div class="prompt"><span class="ps">C:\ARCADIA&gt;</span><h2>open 兩人的互動</h2></div>
+      <div class="pane sunken">
+        <h3>角色互動<br></h3><p>暴君屬於高自尊心的人，雖然表現看不太出來，但會在意他人的看法。<br>而埃德加相當隨意，不太在乎他人對他的看法。</p><p>埃德加身為年長的一方卻表現得比較不成熟，暴君有點成熟過頭但太木頭了。</p><p>埃德加總是戲弄暴君，他喜歡看暴君臉紅不知所措或一臉困擾的樣子。<br>當然，對方如果正經地詢問他的話，他反而容易尷尬而自己害羞。</p><p>暴君有時也會因為一些認真強勢的舉動，或是學習埃德加的招式反擊，讓埃德加滿臉通紅。</p><h4>互動方式參考</h4><figure class="frame sunken"><img src="img/ym2meqy8dmqhj2tksuokl.png" alt="拍貼機" width="3175" height="4000" loading="lazy"><figcaption>＠Yamu<br></figcaption></figure><figure class="frame sunken"><img src="img/4gdl6ufvnscu1uvucx7jlm.jpg" alt="守護天節(萬聖節)出遊" width="4096" height="1697" loading="lazy"><figcaption>@山人糟</figcaption></figure>
+      </div>
+      <div class="status"><div class="sunken">兩人的互動</div><div class="sunken">EOF</div></div>
+    </div></section>
 
     <!-- Story -->
     <section class="win raised" id="w-story" data-title="兩人的故事.txt">
@@ -591,17 +601,11 @@ dialog.viewer::backdrop { background: rgb(10 10 10 / .78); }
 
     <!-- Interaction & world -->
     <section class="win raised" id="w-world" data-title="第九世界.hlp">
-      <div class="titlebar"><span class="t">第九世界.hlp — 角色互動</span><div class="ctl"><button class="raised" data-min aria-label="最小化">_</button><button class="raised" data-close aria-label="關閉">×</button></div></div>
+      <div class="titlebar"><span class="t">觀念差距.hlp — 世界與價值觀</span><div class="ctl"><button class="raised" data-min aria-label="最小化">_</button><button class="raised" data-close aria-label="關閉">×</button></div></div>
       <div class="screen">
       <div class="prompt"><span class="ps">C:\ARCADIA&gt;</span><h2>man world</h2></div>
       <div class="pane sunken">
-        <h3>角色互動</h3>
         <ul class="plain">
-          <li>兩人都是好鬥分子，時不時就會切磋武藝，埃德加也是藉此與他變得熱絡，吵架的時候也是打一架。</li>
-          <li>暴君屬於高自尊心的人，而埃德加相當隨意，不太在乎他人對他的看法。</li>
-          <li>埃德加身為年長的一方卻表現得比較不成熟，暴君有點成熟過頭但太木頭了。</li>
-          <li>埃德加總是戲弄暴君，他喜歡看暴君臉紅不知所措或一臉困擾的樣子。當然，對方如果正經地詢問他的話，他反而尷尬而自己害羞。</li>
-          <li>暴君有時也會因為一些認真強勢的舉動，或是學習埃德加的招式反擊，讓埃德加滿臉通紅。</li>
         </ul>
 
         <h3>觀念差距</h3>
@@ -644,6 +648,7 @@ dialog.viewer::backdrop { background: rgb(10 10 10 / .78); }
     <li><button data-open="w-wardrobe">衣櫃</button></li>
     <li><button data-open="w-story">兩人的故事.txt</button></li>
     <li><button data-open="w-world">第九世界.hlp</button></li>
+    <li><button data-open="w-new">兩人的互動</button></li>
     <li><hr></li>
     <li><button id="open-all">全部開啟</button></li>
     <li><button id="close-all">全部關閉</button></li>
