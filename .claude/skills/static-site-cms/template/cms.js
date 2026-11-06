@@ -538,30 +538,44 @@ async function insertBlock(ins) {
   const start = S.sel?.img || S.sel?.block || S.sel?.el;
   const anchor = start && insertAnchor(start, ins);
   if (!anchor) { toast('這個位置不能插入，請先點選要插在它後面的段落或圖片。', true); return; }
-  const vars = { src: '', alt: '', w: '', h: '' };
-  if (ins.image) {
-    const file = await pickImage();
-    if (!file) return;
+  const imgVars = async file => {
     const { url, dims } = await addAsset(file);
-    Object.assign(vars, { src: url, alt: file.name.replace(/\.[^.]+$/, ''), w: dims ? String(dims[0]) : '', h: dims ? String(dims[1]) : '' });
-  }
+    return { src: url, alt: file.name.replace(/\.[^.]+$/, ''), w: dims ? String(dims[0]) : '', h: dims ? String(dims[1]) : '' };
+  };
+  let html;
+  if (ins.item) {
+    // Several pictures at once: `item` is filled once per file and joined into `{items}`.
+    let files = await pickImage(true);
+    if (!files.length) return;
+    if (ins.images && files.length > ins.images) { toast(`一次最多 ${ins.images} 張，只放入前 ${ins.images} 張。`); files = files.slice(0, ins.images); }
+    const items = [];
+    for (const f of files) items.push(fillTpl(ins.item, await imgVars(f)));
+    html = ins.html.replace('{items}', items.join('\n'));
+    if (ins.images && files.length < ins.images) setTimeout(() => toast(`只選了 ${files.length} 張。要補圖時，點這張圖再按「＋ 圖片」。選檔時按住 Ctrl（Mac 是 ⌘）可以一次選多張。`), 1600);
+  } else if (ins.image) {
+    const [file] = await pickImage();
+    if (!file) return;
+    html = fillTpl(ins.html, await imgVars(file));
+  } else html = fillTpl(ins.html, {});
   endEdit();
-  const roots = insertHTML(anchor.parentElement, fillTpl(ins.html, vars), anchor, 'after');
+  const roots = insertHTML(anchor.parentElement, html, anchor, 'after');
   if (!roots.length) return;
   const first = roots[0];
   first.scrollIntoView({ block: 'nearest' });
   const target = textBlock(first.querySelector('figcaption') || first) || first;
   select(target, pick(target));
-  if (!ins.image && isTexty(target)) { beginEdit(target); setTimeout(() => { S.win.focus(); target.focus(); S.win.getSelection().selectAllChildren(target); }); }
-  toast(`已插入${ins.label}${ins.image ? '，說明文字可以直接點來改' : ''}。`);
+  if (!ins.image && !ins.item && isTexty(target)) { beginEdit(target); setTimeout(() => { S.win.focus(); target.focus(); S.win.getSelection().selectAllChildren(target); }); }
+  toast(`已插入${ins.label}${ins.image || ins.item ? '，說明文字可以直接點來改' : ''}。`);
 }
 
-function pickImage() {
+// Resolves to an array of the chosen image files (empty when cancelled).
+function pickImage(multiple = false) {
   return new Promise(res => {
     const fi = $('file-input');
     fi.value = '';
-    fi.onchange = () => res(fi.files[0] || null);
-    fi.oncancel = () => res(null);
+    fi.multiple = multiple;
+    fi.onchange = () => res([...fi.files].filter(f => f.type.startsWith('image/')));
+    fi.oncancel = () => res([]);
     fi.click();
   });
 }
@@ -623,20 +637,26 @@ function splitBlock(block) {
 
 /* ------------------------------------------------------- images */
 
-function assetName(file) {
+// A file name under assetsDir that no image on the page, pending upload, or file on the site uses yet.
+async function assetName(file) {
   const dot = file.name.lastIndexOf('.');
   const ext = (dot > 0 ? file.name.slice(dot + 1) : (file.type.split('/')[1] || 'png')).toLowerCase().replace(/[^a-z0-9]/g, '');
   let stem = (dot > 0 ? file.name.slice(0, dot) : file.name).toLowerCase().replace(/[^a-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '') || 'image';
   const dir = S.cfg.assetsDir.replace(/^\/+|\/+$/g, '');
   const taken = new Set([...S.assets.keys(), ...[...S.doc.images].map(i => new URL(i.getAttribute('src') || '', pageURL(S.page.path)).href)]);
   let name = `${stem}.${ext}`, n = 1;
-  while (taken.has(dir + '/' + name) || taken.has(new URL(dir + '/' + name, siteURL()).href)) name = `${stem}-${++n}.${ext}`;
+  const onSite = async url => { try { return (await fetch(url, { method: 'HEAD', cache: 'no-store' })).ok; } catch { return false; } };
+  for (;;) {
+    const url = new URL((dir ? dir + '/' : '') + name, siteURL()).href;
+    if (!taken.has((dir ? dir + '/' : '') + name) && !taken.has(url) && !await onSite(url)) break;
+    name = `${stem}-${++n}.${ext}`;
+  }
   return (dir ? dir + '/' : '') + name;
 }
 
 // Register an image file to be published with the page; the preview uses a blob URL.
 async function addAsset(file) {
-  const sitePath = assetName(file);
+  const sitePath = await assetName(file);
   const rel = relPath(dirOf(S.page.path), sitePath);
   const url = URL.createObjectURL(file);
   S.blobs.set(url, rel);
@@ -908,7 +928,7 @@ function imageField(el, f) {
   const v = el.getAttribute(f.attr);
   const shown = v && (S.blobs.has(v) ? v : new URL(v, pageURL(S.page.path)).href);
   const choose = async () => {
-    const file = await pickImage();
+    const [file] = await pickImage();
     if (!file) return;
     const { rel, url } = await addAsset(file);
     setAttr(el, f.attr, rel, url);
@@ -1009,7 +1029,7 @@ function renderInspector() {
     const thumb = h('img', { class: 'thumb', src: img.currentSrc || img.src, alt: '' });
     box.append(h('div', { class: 'card' }, h('h3', {}, '圖片'), thumb,
       h('div', { class: 'row' },
-        h('button', { class: 'primary', onclick: () => { const fi = $('file-input'); fi.onchange = () => { replaceImage(img, fi.files[0]); fi.value = ''; }; fi.click(); } }, '替換圖片…')),
+        h('button', { class: 'primary', onclick: () => { const fi = $('file-input'); fi.multiple = false; fi.onchange = () => { replaceImage(img, fi.files[0]); fi.value = ''; }; fi.click(); } }, '替換圖片…')),
       h('p', { class: 'small muted' }, '也可以把圖片檔直接拖到網頁上的這張圖。'),
       h('label', {}, '替代文字（看不到圖片時顯示、對搜尋與無障礙有幫助）', attrInput(img, 'alt')),
       h('label', {}, '圖片路徑', attrInput(img, 'src'))));

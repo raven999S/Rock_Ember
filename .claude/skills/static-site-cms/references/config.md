@@ -41,6 +41,8 @@
   "inserts": [                      // 選取元素後，右側「在這後面插入」的按鈕
     { "label": "圖片", "image": true, "into": "article, .content",   // image：先選圖檔；{src} {alt} {w} {h} 會自動填入
       "html": "<figure><img src=\"{src}\" alt=\"{alt}\" width=\"{w}\" height=\"{h}\" loading=\"lazy\"><figcaption>圖片說明</figcaption></figure>" },
+    { "label": "兩張並排", "images": 2, "into": "article, .content",   // item：每張圖套一次，合併放進 {items}；選檔可多選，images = 上限
+      "html": "<div class=\"row\">{items}</div>", "item": "<figure><img src=\"{src}\" alt=\"{alt}\" width=\"{w}\" height=\"{h}\"></figure>" },
     { "label": "段落", "into": "article, .content", "html": "<p>新的段落</p>" }
   ],                                // into：新元素的父層必須符合的 selector；從選取處往上找第一個合格的位置，插在它後面
 

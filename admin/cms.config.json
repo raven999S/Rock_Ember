@@ -144,9 +144,10 @@
     },
     {
       "label": "兩張並排",
-      "image": true,
       "into": ".pane, .prose, .intro, details",
-      "html": "<div class=\"grid2\">\n          <figure class=\"frame sunken\"><img src=\"{src}\" alt=\"{alt}\" width=\"{w}\" height=\"{h}\" loading=\"lazy\"><figcaption>圖片說明</figcaption></figure>\n        </div>"
+      "html": "<div class=\"grid2\">\n{items}\n        </div>",
+      "images": 2,
+      "item": "          <figure class=\"frame sunken\"><img src=\"{src}\" alt=\"{alt}\" width=\"{w}\" height=\"{h}\" loading=\"lazy\"><figcaption>圖片說明</figcaption></figure>"
     },
     {
       "label": "段落",
