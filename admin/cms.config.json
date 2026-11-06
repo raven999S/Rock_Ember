@@ -141,7 +141,12 @@
       "html": "<p>新的段落</p>"
     },
     {
-      "label": "小標題",
+      "label": "## 標題",
+      "into": ".pane, .prose",
+      "html": "<h3>新標題</h3>"
+    },
+    {
+      "label": "[ 小標題 ]",
       "into": ".pane, .prose",
       "html": "<h4>新標題</h4>"
     },
