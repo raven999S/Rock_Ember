@@ -85,7 +85,8 @@
         <label>儲存庫<input id="gh-repo" autocomplete="off"></label>
         <label>分支<input id="gh-branch" autocomplete="off"></label>
       </div>
-      <label>網站在儲存庫中的子資料夾（根目錄留空）<input id="gh-dir" autocomplete="off" placeholder="例如 docs"></label>
+      <label>網站在儲存庫中的子資料夾（通常留空；不是分支名稱）<input id="gh-dir" autocomplete="off" placeholder="留空 = 儲存庫最外層"></label>
+      <div class="small muted" id="gh-where"></div>
       <label>存取權杖（Fine-grained token，只需此儲存庫的 Contents 讀寫權限）<input id="gh-token" type="password" autocomplete="off"></label>
       <label class="check"><input type="checkbox" id="gh-remember"> 在這台電腦記住權杖</label>
       <label>提交訊息<input id="gh-msg" autocomplete="off"></label>

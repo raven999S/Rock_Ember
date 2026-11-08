@@ -173,3 +173,4 @@ h3 { font-size: .8em; text-transform: uppercase; letter-spacing: .08em; color: v
   .panel-inspect { border: 0; border-top: 1px solid var(--line); }
   .status { order: 10; flex-basis: 100%; margin-left: 0; }
 }
+#gh-where { margin: -4px 0 var(--gap); }

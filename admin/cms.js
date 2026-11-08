@@ -117,7 +117,7 @@ const gh = {
     c.token = store.get('gh-token', '') || store.get('gh-token', '', sessionStorage);
     return c;
   },
-  repoPath(p) { const d = (this.conf().dir || '').replace(/^\/+|\/+$/g, ''); return d ? d + '/' + p : p; },
+  repoPath(p, dir = this.conf().dir) { const d = (dir || '').replace(/^\/+|\/+$/g, ''); return d ? d + '/' + p : p; },
   async api(path, opts = {}) {
     const c = this.conf();
     const r = await fetch(`https://api.github.com/repos/${c.owner}/${c.repo}${path}`, {
@@ -130,9 +130,9 @@ const gh = {
     }
     return r;
   },
-  async read(path) {
+  async read(path, dir) {
     const c = this.conf();
-    const p = this.repoPath(path).split('/').map(encodeURIComponent).join('/');
+    const p = this.repoPath(path, dir).split('/').map(encodeURIComponent).join('/');
     const r = await this.api(`/contents/${p}?ref=${encodeURIComponent(c.branch)}`, { headers: { Accept: 'application/vnd.github.raw+json' } });
     return r.text();
   },
@@ -167,7 +167,19 @@ const target = () => store.get('target', S.cfg.publish.default || 'folder');
 async function readSource(path) {
   const t = target();
   if (t === 'github' && gh.conf().token) {
-    try { return { text: await gh.read(path), from: 'GitHub' }; } catch (e) { toast('無法從 GitHub 讀取，改用網站上的版本：' + e.message, true); }
+    try { return { text: await gh.read(path), from: 'GitHub' }; } catch (e) {
+      // A wrong "subfolder" setting (often the branch name typed into it) while the page sits at the repo root.
+      const dir = gh.conf().dir;
+      if (e.status === 404 && dir) {
+        try {
+          const text = await gh.read(path, '');
+          store.set('gh', { ...store.get('gh', {}), dir: '' });
+          toast(`GitHub 設定的子資料夾「${dir}」裡沒有 ${path}，但儲存庫最外層有，已自動改成最外層。`);
+          return { text, from: 'GitHub' };
+        } catch {}
+      }
+      toast('無法從 GitHub 讀取，改用網站上的版本：' + e.message, true);
+    }
   }
   if (t === 'folder' && await folder.ready(false).catch(() => false)) {
     try { return { text: await folder.read(path), from: '本機資料夾' }; } catch {}
@@ -1280,6 +1292,17 @@ function syncTargetOpts() {
   $('folder-state').textContent = !fs ? '這個瀏覽器不支援直接寫入資料夾，請用 Chrome 或 Edge，或改用其他方式。'
     : folder.handle ? `已連結資料夾「${folder.handle.name}」。` : '還沒選擇資料夾。請選網站的根目錄（裡面有 ' + S.page.path + ' 的那一層）。';
   $('folder-pick').disabled = !fs;
+  syncGhWhere();
+}
+
+// Spell out exactly where a GitHub publish will write, and flag a branch name typed as the subfolder.
+function syncGhWhere() {
+  const v = id => $(id).value.trim();
+  const branch = v('gh-branch') || 'main', dir = v('gh-dir').replace(/^\/+|\/+$/g, '');
+  const bad = dir && (dir === branch || /^(main|master|gh-pages)$/i.test(dir));
+  $('gh-where').replaceChildren(
+    h('div', {}, `會寫入：${v('gh-owner')}/${v('gh-repo')} 的「${branch}」分支 › ${(dir ? dir + '/' : '') + S.page.path}`),
+    ...(bad ? [h('div', { class: 'warn' }, `「${dir}」看起來是分支名稱，不是資料夾。網站檔案在儲存庫最外層的話，子資料夾這格請留空。`)] : []));
 }
 
 async function doPublish(t) {
@@ -1301,7 +1324,10 @@ async function doPublish(t) {
     const c = gh.conf();
     if (!c.owner || !c.repo || !c.token) throw new Error('請填寫 GitHub 擁有者、儲存庫與權杖。');
     let cur = null;
-    try { cur = await gh.read(path); } catch (e) { if (e.status !== 404) throw e; }
+    try { cur = await gh.read(path); } catch (e) {
+      if (e.status !== 404) throw e;
+      if (!confirm(`儲存庫裡找不到「${gh.repoPath(path)}」。\n\n網站檔案在儲存庫最外層的話，請把「子資料夾」那格清空再發佈。\n\n確定要在這個位置建立新檔案嗎？`)) return false;
+    }
     if (conflict(cur)) return false;
     await gh.commit(files, $('gh-msg').value.trim() || `內容更新：${path}`);
   } else {
@@ -1327,6 +1353,7 @@ function download(blob, name) {
 function wirePublish() {
   const dlg = $('publish-dlg');
   dlg.addEventListener('change', e => { if (e.target.name === 'target') syncTargetOpts(); });
+  dlg.addEventListener('input', e => { if (e.target.id?.startsWith('gh-')) syncGhWhere(); });
   $('folder-pick').addEventListener('click', async () => { try { await folder.pick(); syncTargetOpts(); } catch {} });
   $('publish-go').addEventListener('click', async e => {
     e.preventDefault();
