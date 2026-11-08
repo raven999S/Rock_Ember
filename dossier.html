@@ -206,6 +206,8 @@ ul.plain li::before { content: "* "; color: var(--acc); font-family: var(--font-
 .run label { color: var(--dim); white-space: nowrap; }
 #cmd { flex: 1; min-width: 0; background: transparent; border: 0; color: var(--hi-text); font: inherit; caret-color: var(--acc); padding: 2px 0; }
 #cmd:focus { outline: none; }
+.lang { flex: 0 0 auto; display: inline-flex; align-items: center; padding: 4px 10px; font-family: var(--font-pixel); font-size: 13px; color: var(--chrome-ink); text-decoration: none; white-space: nowrap; }
+.lang:active { box-shadow: inset 1px 1px 0 var(--edge), inset -1px -1px 0 var(--hi); }
 .clock { font-family: var(--font-num); font-size: 18px; color: var(--chrome-ink); padding: 2px 10px; flex: 0 0 auto; box-shadow: inset 1px 1px 0 var(--lo), inset -1px -1px 0 var(--hi); }
 #out {
   position: fixed; right: max(12px, env(safe-area-inset-right, 0px)); bottom: calc(46px + env(safe-area-inset-bottom, 0px)); z-index: 21;
@@ -457,7 +459,7 @@ dialog.viewer::backdrop { background: rgb(10 10 10 / .78); }
         <p>淡金色的微捲髮與橘黃雙眼，露出眼睛時容易看起來很兇，所以通常會把瀏海放下來偶爾才會整理好造型，大頭這張是整理好頭髮的模樣。</p>
         <p>被衣物遮擋的身上有許多疤痕，為什麼只有身體有疤痕？因為他懶得治療臉以外的地方，認為這樣很浪費以太。</p>
         <h4>個性</h4>
-        <p><b># 開朗、友善、難以預料、<span class="tip" tabindex="0" data-tip="對喜歡的人會特別想要戲弄對方（？）">賤賤的</span></b><br>溫和親切、健談開朗、喜歡惡作劇，講話不太正經，他一直都保持著微笑，跟各種人都能簡單的混熟，是個你請他幫忙就幫的熱情冒險者。對自己要用生命與敵人奮戰這種事不當一回事還能輕鬆的笑著，這個男人對生命的消逝理所當然的有些<span class="tip" tabindex="0" data-tip="補充說明文字"><span class="tip" tabindex="0" data-tip="旅途中失去太多導致他的內心產生了防禦機制，將一切看得很淡，包括自己的性命。">不對勁</span></span>了。</p>
+        <p><b># 開朗、友善、難以預料、<span class="tip" tabindex="0" data-tip="對喜歡的人會特別想要戲弄對方（？）">賤賤的</span></b><br>溫和親切、健談開朗、喜歡惡作劇，講話不太正經，他一直都保持著微笑，跟各種人都能簡單的混熟，是個你請他幫忙就幫的熱情冒險者。對自己要用生命與敵人奮戰這種事不當一回事還能輕鬆的笑著，這個男人對生命的消逝理所當然的有些<span class="tip" tabindex="0" data-tip="旅途中失去太多導致他的內心產生了防禦機制，將一切看得很淡，包括自己的性命。">不對勁</span>了。</p>
         <h4>感情方面</h4>
         <p>是個很隱藏真心的人，這些年來他送走了太多戰友與朋友，面對感情會逃避，所以一把年紀了還沒談過戀愛，當真的喜歡上了又忍不住想接近，想待在對方身邊。</p>
         <p>阿爾科斯很強，強的讓他放心，所以他在阿卡狄亞打敗對方後就一直用訓練的名義去接近他。他很喜歡阿爾科斯那認真單純的模樣，時而逗弄他表面冷靜但害羞的反應也很可愛，在他身旁總覺得很輕鬆。雖然埃德加想過對方可能永遠不會感受到自己的心意，但在他必須為了光之戰士的義務前往下個世界之前，他還想多待在阿爾科斯身邊，哪怕多一天也好。</p>
@@ -680,6 +682,7 @@ dialog.viewer::backdrop { background: rgb(10 10 10 / .78); }
     <label for="cmd">C:\&gt;</label>
     <input id="cmd" type="text" spellcheck="false" placeholder="輸入 help">
   </form>
+  <a class="lang raised" id="lang" href="ko.html" hreflang="ko" lang="ko" title="한국어 페이지로">한국어</a>
   <div class="clock" id="clock">--:--</div>
 </footer>
 
@@ -943,9 +946,20 @@ dialog.viewer::backdrop { background: rgb(10 10 10 / .78); }
   addEventListener('scroll', placeTip, { passive: true, capture: true });
   addEventListener('resize', placeTip);
 
+  // Language switch: carry the window being read (the one across the middle of the screen) to the other page.
+  document.getElementById('lang').addEventListener('click', e => {
+    const open = [...stack.querySelectorAll('.win')].filter(x => !x.hidden);
+    const mid = innerHeight / 2;
+    const w = open.find(x => { const r = x.getBoundingClientRect(); return r.top <= mid && r.bottom >= mid; }) || open[0];
+    if (w) e.currentTarget.href = e.currentTarget.getAttribute('href').split('#')[0] + '#' + w.id.replace(/^w-/, '');
+  });
+
   wins.forEach(w => { if (w.id !== 'w-readme') w.hidden = true; });
   const fromHash = location.hash.slice(1);
-  if (fromHash && document.getElementById('w-' + fromHash)) openWin('w-' + fromHash, { quiet: true, keepOrder: true });
+  if (fromHash && document.getElementById('w-' + fromHash)) {
+    openWin('w-' + fromHash, { quiet: true, keepOrder: true });
+    requestAnimationFrame(() => document.getElementById('w-' + fromHash).scrollIntoView({ block: 'start' }));
+  }
   sync();
 })();
 </script>

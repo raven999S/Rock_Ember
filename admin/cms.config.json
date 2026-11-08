@@ -5,6 +5,10 @@
     {
       "path": "dossier.html",
       "label": "機密檔案（主頁）"
+    },
+    {
+      "path": "ko.html",
+      "label": "한국어 페이지 (ko)"
     }
   ],
   "assetsDir": "img",
@@ -25,7 +29,8 @@
     "#viewer",
     ".eq",
     ".icon svg",
-    ".tipbox"
+    ".tipbox",
+    ".lang"
   ],
   "repeat": [
     {
