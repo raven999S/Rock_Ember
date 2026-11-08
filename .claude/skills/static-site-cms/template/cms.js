@@ -1127,6 +1127,7 @@ function outlineEntries() {
   return out;
 }
 function renderOutline() {
+  if (!S.doc) return;  // a page is (re)loading; mount() redraws it
   const ul = $('outline');
   ul.replaceChildren();
   const list = outlineEntries();
