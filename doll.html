@@ -1,0 +1,628 @@
+<!doctype html>
+<html lang="zh-Hant">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow, noimageindex">
+<title>狗勾的娃委</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=IBM+Plex+Mono:wght@400;600&family=Noto+Sans+TC:wght@400;700&family=VT323&display=swap">
+<style>
+/* Layout: a landscape old-computer desktop in muted colours. Icons on the left, overlapping draggable windows,
+   a taskbar at the bottom. On narrow screens one window is shown at a time, full screen.
+   Colours come from the data-theme on .desktop; window positions from data-x/y/w/h on each .win
+   (in px on a 1440×860 canvas that is centred in larger viewports). */
+.desktop {
+  --desk: #8a9a96; --desk-dot: #82928e;
+  --face: #d3cdc2; --hi: #f1ede5; --hi-2: #e4dfd5; --lo: #a39c90; --edge: #57534c;
+  --chrome-ink: #3d3b40; --title-ink: #f3efe7;
+  --title: #74687f; --title-2: #a297a9; --title-off: #9a958c; --title-off-2: #b5b0a6;
+  --paper: #f0ebe1; --paper-2: #e6dfd2; --line: #c2baab;
+  --ink: #3d3b40; --dim: #7c766d; --acc: #74687f; --warn: #8a5f5f; --dot: #b48a8a;
+  --icon-ink: #f4f1ea; --icon-shadow: rgb(40 50 48 / .55);
+  --font-mono: "IBM Plex Mono", "Noto Sans TC", "Microsoft JhengHei", monospace;
+  --font-body: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+  --font-pixel: "DotGothic16", "Noto Sans TC", "Microsoft JhengHei", monospace;
+  --font-num: "VT323", "IBM Plex Mono", monospace;
+  --bar: calc(40px + env(safe-area-inset-bottom, 0px));
+}
+.desktop[data-theme="mauve"] { --desk: #9a8f9e; --desk-dot: #91869a; --title: #66786f; --title-2: #9fb0a7; --acc: #66786f; }
+.desktop[data-theme="sand"]  { --desk: #b3a58e; --desk-dot: #a99b84; --title: #7a6a5a; --title-2: #ab9c8c; --acc: #7a6a5a; }
+.desktop[data-theme="slate"] { --desk: #8792a0; --desk-dot: #7e8997; --title: #5f6b7c; --title-2: #95a1b1; --acc: #5f6b7c; }
+.desktop[data-theme="night"] {
+  --desk: #3b3d42; --desk-dot: #44464b;
+  --face: #605e5b; --hi: #8a8782; --hi-2: #74716d; --lo: #454341; --edge: #1c1b1a;
+  --chrome-ink: #ece8e0; --title: #5b5266; --title-2: #887e93; --title-off: #4a4947; --title-off-2: #63615e;
+  --paper: #26262a; --paper-2: #313136; --line: #4a4a50;
+  --ink: #d8d4cc; --dim: #9a958c; --acc: #b3a8bf; --warn: #d0a3a3; --icon-shadow: rgb(0 0 0 / .6);
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body { overflow: hidden; background: #8a9a96; }
+[hidden] { display: none !important; }
+.desktop {
+  position: fixed; inset: 0; overflow: hidden;
+  background-color: var(--desk);
+  background-image: radial-gradient(var(--desk-dot) 1px, transparent 1px);
+  background-size: 4px 4px;
+  color: var(--ink); font-family: var(--font-body); font-size: 14px; line-height: 1.75;
+}
+.raised { background: var(--face); box-shadow: inset -1px -1px 0 var(--edge), inset 1px 1px 0 var(--hi), inset -2px -2px 0 var(--lo), inset 2px 2px 0 var(--hi-2); }
+.sunken { box-shadow: inset 1px 1px 0 var(--lo), inset -1px -1px 0 var(--hi), inset 2px 2px 0 var(--edge); }
+.pressed { background: var(--paper-2); box-shadow: inset 1px 1px 0 var(--edge), inset -1px -1px 0 var(--hi); }
+a { color: var(--acc); text-underline-offset: 3px; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 1px dotted var(--chrome-ink); outline-offset: -4px; }
+::selection { background: var(--title); color: var(--title-ink); }
+
+/* pixel icons */
+.ico { display: inline-block; flex: 0 0 auto; width: 40px; height: 40px; background: no-repeat center / contain; image-rendering: pixelated; }
+.ico { background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'><path d='M3 1h7l3 3v11H3z' fill='%2357534c'/><path d='M4 2h5v3h3v9H4z' fill='%23f0ebe1'/><path d='M10 2l2 2h-2z' fill='%23c2baab'/><path d='M5 6h6v1H5zM5 8h6v1H5zM5 10h4v1H5z' fill='%2374687f'/></svg>"); }
+.ico[data-ico="folder"], [data-ico="folder"] > .ico { background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'><path d='M1 3h5l1 2h8v9H1z' fill='%2357534c'/><path d='M2 4h3l1 2h8v7H2z' fill='%23d8c7a2'/><path d='M2 7h12v6H2z' fill='%23c9b48f'/><path d='M2 12h12v1H2z' fill='%23a8946f'/></svg>"); }
+.ico[data-ico="palette"], [data-ico="palette"] > .ico { background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'><path d='M2 2h12v12H2z' fill='%2357534c'/><path d='M3 3h10v10H3z' fill='%23f0ebe1'/><path d='M4 4h2v2H4z' fill='%23b48a8a'/><path d='M7 4h2v2H7z' fill='%23c9b48f'/><path d='M10 4h2v2h-2z' fill='%237f9484'/><path d='M4 7h2v2H4z' fill='%238296a3'/><path d='M7 7h2v2H7z' fill='%2374687f'/><path d='M10 7h2v2h-2z' fill='%23a39c90'/><path d='M4 10h8v2H4z' fill='%23d3cdc2'/></svg>"); }
+.ico[data-ico="doll"], [data-ico="doll"] > .ico { background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'><path d='M3 3h2v1h6V3h2v3h1v5h-2v4H4v-4H2V6h1z' fill='%2357534c'/><path d='M4 4h1v1h6V4h1v2h1v4H3V6h1z' fill='%23e3d3c3'/><path d='M5 11h6v3H5z' fill='%23a297a9'/><path d='M5 7h1v2H5zM10 7h1v2h-1z' fill='%2357534c'/><path d='M7 9h2v1H7z' fill='%23b48a8a'/></svg>"); }
+.ico[data-ico="sheet"], [data-ico="sheet"] > .ico { background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'><path d='M2 2h12v12H2z' fill='%2357534c'/><path d='M3 3h10v10H3z' fill='%23f0ebe1'/><path d='M3 3h10v2H3z' fill='%237f9484'/><path d='M6 5h1v8H6zM10 5h1v8h-1zM3 7h10v1H3zM3 10h10v1H3z' fill='%23a39c90'/></svg>"); }
+.ico[data-ico="link"], [data-ico="link"] > .ico { background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'><path d='M2 3h12v10H2z' fill='%2357534c'/><path d='M3 4h10v8H3z' fill='%23f0ebe1'/><path d='M3 4h10v2H3z' fill='%23a297a9'/><path d='M8 7h3v3h-1V9L8 11 7 10l2-2H8z' fill='%2374687f'/></svg>"); }
+
+/* desktop icons */
+.icons { position: absolute; left: 14px; top: 14px; bottom: calc(var(--bar) + 10px); display: grid; grid-template-rows: repeat(auto-fill, 86px); grid-auto-flow: column; grid-auto-columns: 92px; gap: 10px 2px; align-content: start; }
+.icon {
+  display: flex; flex-direction: column; align-items: center; gap: 4px; width: 92px;
+  background: none; border: 0; padding: 4px 2px; cursor: pointer; text-decoration: none;
+  color: var(--icon-ink); font-family: var(--font-pixel); font-size: 12.5px; line-height: 1.3; text-align: center;
+  text-shadow: 1px 1px 0 var(--icon-shadow);
+}
+.icon span { padding: 1px 5px; }
+.icon:hover span, .icon:focus-visible span, .icon.on span { background: var(--title); color: var(--title-ink); text-shadow: none; }
+.icon:focus-visible { outline: 0; }
+.icon:focus-visible span { outline: 1px dotted var(--icon-ink); }
+
+/* windows */
+.win { position: absolute; left: 40px; top: 40px; width: 520px; height: 420px; padding: 4px; display: flex; flex-direction: column; filter: drop-shadow(3px 4px 0 rgb(40 45 45 / .26)); }
+.win.mini { display: none; }
+.win.max { left: 0 !important; top: 0 !important; width: 100% !important; height: calc(100% - var(--bar)) !important; }
+.titlebar {
+  display: flex; align-items: center; gap: 8px; flex: 0 0 auto;
+  background: linear-gradient(90deg, var(--title-off), var(--title-off-2));
+  color: var(--title-ink); padding: 3px 3px 3px 8px; cursor: default; user-select: none; touch-action: none;
+  font-family: var(--font-pixel); font-size: 14px; letter-spacing: .04em;
+}
+.win.active .titlebar { background: linear-gradient(90deg, var(--title), var(--title-2)); }
+.titlebar .t { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ctl { display: flex; gap: 2px; }
+.ctl button { width: 22px; height: 20px; padding: 0; border: 0; cursor: pointer; color: var(--chrome-ink); font: 400 16px/1 var(--font-num); }
+.ctl button:active { background: var(--paper-2); box-shadow: inset 1px 1px 0 var(--edge), inset -1px -1px 0 var(--hi); }
+.body { flex: 1; min-height: 0; margin: 2px; padding: 16px 18px 20px; background: var(--paper); overflow: auto; overscroll-behavior: contain; }
+.body > :first-child, .cols > div > :first-child { margin-top: 0; }
+.body::-webkit-scrollbar { width: 16px; height: 16px; }
+.body::-webkit-scrollbar-track { background: var(--paper-2); box-shadow: inset 1px 0 0 var(--line); }
+.body::-webkit-scrollbar-thumb { background: var(--face); box-shadow: inset -1px -1px 0 var(--edge), inset 1px 1px 0 var(--hi), inset -2px -2px 0 var(--lo); }
+.statusbar { display: flex; gap: 4px; margin: 2px; flex: 0 0 auto; font-family: var(--font-mono); font-size: 11.5px; color: var(--chrome-ink); opacity: .8; }
+.statusbar div { padding: 1px 8px; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.statusbar div:last-child { flex: 0 0 auto; }
+
+/* content formats */
+h1 { font-family: var(--font-pixel); font-weight: 400; font-size: 30px; line-height: 1.25; margin: 0 0 4px; letter-spacing: .04em; }
+h3 { font-family: var(--font-pixel); font-weight: 400; font-size: 15.5px; margin: 18px 0 8px; padding: 2px 8px; background: var(--paper-2); border-left: 4px solid var(--acc); }
+h4 { font-family: var(--font-pixel); font-weight: 400; font-size: 14px; margin: 14px 0 4px; color: var(--acc); }
+h4::before { content: "▸ "; }
+p { margin: 0 0 8px; }
+.sub { font-family: var(--font-mono); font-size: 11.5px; color: var(--dim); letter-spacing: .08em; }
+ul, ol { margin: 0 0 8px; padding-left: 1.3em; }
+ul > li::marker { color: var(--dot); content: "▪ "; }
+.tag { display: inline-block; font-family: var(--font-pixel); font-size: 12.5px; line-height: 1.6; padding: 0 8px; border: 1px solid currentColor; color: var(--warn); }
+.note { border: 1px dashed var(--line); background: var(--paper-2); padding: 7px 11px; font-size: 13px; }
+.warn { border: 1px dashed var(--warn); background: var(--paper-2); padding: 7px 11px; font-size: 13px; }
+.warn::before { content: "注意　"; font-family: var(--font-pixel); color: var(--warn); }
+.links { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0 0 8px; }
+.btn { display: inline-block; padding: 4px 14px; font-family: var(--font-pixel); font-size: 13px; color: var(--chrome-ink); text-decoration: none; }
+.btn:active { background: var(--paper-2); box-shadow: inset 1px 1px 0 var(--edge), inset -1px -1px 0 var(--hi); }
+.links code { font-family: var(--font-mono); font-size: 12.5px; color: var(--dim); }
+
+.price { padding: 8px 12px; margin: 0 0 10px; background: var(--paper-2); }
+.price .row { display: flex; align-items: baseline; gap: 10px; }
+.price .k { font-family: var(--font-pixel); }
+.price .n { margin-left: auto; font-family: var(--font-num); font-size: 30px; line-height: 1.15; color: var(--acc); }
+.price .row::before { content: ""; order: 1; flex: 1; border-bottom: 1px dotted var(--lo); transform: translateY(-5px); }
+.price .n, .price .u { order: 2; margin-left: 0; }
+
+dl.kv { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; margin: 0 0 8px; }
+dl.kv dt { font-family: var(--font-pixel); color: var(--dim); white-space: nowrap; }
+dl.kv dd { margin: 0; }
+
+.steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); gap: 6px; margin: 0 0 10px; }
+.step { padding: 6px 4px; text-align: center; font-family: var(--font-pixel); font-size: 12.5px; line-height: 1.35; color: var(--chrome-ink); }
+.step b { display: block; font: 400 22px/1 var(--font-num); color: var(--acc); }
+.desktop[data-theme="night"] .step b { color: var(--chrome-ink); }
+
+/* two-column layouts */
+.home { display: grid; grid-template-columns: 168px minmax(0, 1fr); gap: 16px; }
+.cols { display: grid; grid-template-columns: minmax(0, 1fr) 250px; gap: 18px; align-items: start; }
+.cols > div { min-width: 0; }
+
+/* images */
+figure { margin: 0 0 10px; }
+figure img { display: block; width: 100%; height: auto; cursor: zoom-in; }
+figcaption { font-size: 12px; line-height: 1.5; color: var(--dim); padding-top: 4px; }
+figcaption b { display: block; font-family: var(--font-pixel); font-weight: 400; color: var(--ink); }
+.frame { padding: 4px; background: var(--paper-2); }
+.frame figcaption { padding: 4px 4px 2px; }
+figure[data-size="s"] { max-width: 180px; }
+figure[data-size="m"] { max-width: 320px; }
+figure[data-size="l"] { max-width: 480px; }
+.portrait img { cursor: default; }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; align-items: start; margin: 0 0 10px; }
+.grid2 > figure { margin: 0; }
+.shots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; align-items: start; margin: 0 0 10px; }
+.shot { margin: 0; padding: 4px; }
+.shot img { height: 160px; object-fit: cover; object-position: center 30%; }
+.shot[data-fit="contain"] img { height: auto; }
+.shot[data-fit="top"] img { object-position: center top; }
+.shot[data-fit="center"] img { object-position: center; }
+.shot figcaption { padding: 4px 2px 2px; color: var(--chrome-ink); }
+.shot figcaption b { color: var(--chrome-ink); }
+
+/* start menu + taskbar */
+.menu { position: absolute; left: 4px; bottom: calc(var(--bar) - 2px); z-index: 9000; min-width: 220px; padding: 4px; display: flex; color: var(--chrome-ink); }
+.menu .brand { writing-mode: vertical-rl; padding: 8px 3px; background: linear-gradient(0deg, var(--title), var(--title-2)); color: var(--title-ink); font-family: var(--font-pixel); font-size: 14px; letter-spacing: .12em; }
+.menu ul { list-style: none; margin: 0; padding: 2px; flex: 1; }
+.menu li button { display: flex; align-items: center; gap: 8px; width: 100%; padding: 5px 10px; background: none; border: 0; cursor: pointer; font-family: var(--font-pixel); font-size: 13.5px; text-align: left; }
+.menu li button:hover, .menu li button:focus-visible { background: var(--title); color: var(--title-ink); outline: 0; }
+.menu .ico { width: 22px; height: 22px; }
+.menu hr { border: 0; height: 2px; margin: 4px 2px; box-shadow: inset 0 1px 0 var(--lo), inset 0 -1px 0 var(--hi); }
+.taskbar { position: absolute; left: 0; right: 0; bottom: 0; height: var(--bar); z-index: 8000; display: flex; align-items: flex-start; gap: 6px; padding: 5px 6px 0; color: var(--chrome-ink); }
+.taskbar > * { height: 30px; }
+.start { display: flex; align-items: center; gap: 6px; padding: 0 12px; border: 0; cursor: pointer; font-family: var(--font-pixel); font-size: 14px; }
+.start .ico { width: 18px; height: 18px; }
+.sep { width: 2px; box-shadow: inset 1px 0 0 var(--lo), inset -1px 0 0 var(--hi); }
+.tasks { flex: 1; min-width: 0; display: flex; gap: 4px; overflow: hidden; }
+.tasks button { flex: 0 1 170px; min-width: 0; height: 30px; padding: 0 10px; border: 0; cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: var(--font-pixel); font-size: 12.5px; }
+.tasks button span { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tasks .ico { width: 16px; height: 16px; }
+.tray { display: flex; align-items: center; gap: 12px; padding: 0 12px; font-family: var(--font-mono); font-size: 12px; white-space: nowrap; }
+.tray .dot { display: inline-block; width: 8px; height: 8px; margin-right: 6px; background: var(--dot); }
+
+/* image viewer */
+.viewer { border: 0; padding: 4px; width: min(1100px, 96vw); height: min(92vh, 900px); max-width: none; max-height: none; color: var(--chrome-ink); }
+.viewer[open] { display: flex; flex-direction: column; }
+.viewer::backdrop { background: rgb(30 34 34 / .55); }
+.viewer .titlebar { background: linear-gradient(90deg, var(--title), var(--title-2)); }
+.vstage { flex: 1; min-height: 0; margin: 2px; overflow: auto; background: var(--paper); display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); place-items: center; }
+.vstage img { display: block; max-width: 100%; max-height: 100%; cursor: zoom-in; }
+.vstage.zoomed { display: block; }
+.vstage.zoomed img { max-width: none; max-height: none; cursor: zoom-out; }
+.vbar { display: flex; align-items: center; gap: 10px; padding: 3px 6px; font-family: var(--font-pixel); font-size: 12.5px; }
+.vbar a { color: var(--chrome-ink); }
+
+/* narrow screens: one full-screen window at a time, icons as the home screen */
+@media (max-width: 760px) {
+  .desktop { overflow: auto; }
+  .icons { position: static; display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); grid-template-rows: none; grid-auto-flow: row; gap: 14px 4px; padding: 20px 12px calc(var(--bar) + 20px); justify-items: center; }
+  .win { position: fixed; left: 0 !important; top: 0 !important; width: 100% !important; height: calc(100% - var(--bar)) !important; filter: none; }
+  .titlebar { padding-block: 6px; touch-action: auto; }
+  .ctl [data-max], .ctl [data-min] { display: none; }
+  .ctl button { width: 34px; height: 28px; }
+  .body { padding: 14px 14px 20px; }
+  .home { grid-template-columns: minmax(0, 1fr); }
+  .home .portrait { max-width: 180px; }
+  .cols { grid-template-columns: minmax(0, 1fr); }
+  .shots { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tasks button { flex-basis: 120px; }
+  .tray .hide-s { display: none; }
+  .taskbar { position: fixed; }
+  .menu { position: fixed; }
+}
+@media (max-width: 420px) { .tasks { visibility: hidden; } }
+@media print { .desktop { position: static; } .win { position: static; width: auto !important; height: auto !important; } .taskbar, .icons { display: none; } }
+</style>
+
+<div class="desktop" id="desktop" data-theme="sage">
+  <nav class="icons" aria-label="桌面">
+    <button class="icon" data-ico="doc" data-open="w-notice"><i class="ico"></i><span>公告.txt</span></button>
+    <button class="icon" data-ico="folder" data-open="w-flow"><i class="ico"></i><span>收費與流程</span></button>
+    <button class="icon" data-ico="palette" data-open="w-color"><i class="ico"></i><span>選色</span></button>
+    <button class="icon" data-ico="doll" data-open="w-nunu"><i class="ico"></i><span>努努體<br>(印花體)</span></button>
+    <button class="icon" data-ico="doll" data-open="w-normal"><i class="ico"></i><span>正常體</span></button>
+    <button class="icon" data-ico="doll" data-open="w-animal"><i class="ico"></i><span>動物體</span></button>
+    <button class="icon" data-ico="doc" data-open="w-care"><i class="ico"></i><span>維護說明.txt</span></button>
+    <a class="icon" data-ico="sheet" href="https://docs.google.com/spreadsheets/d/1k0LaiqIRiGB7kKw6Tilj5Nu5qKGJzvfSBfIcGOecxBU/edit?gid=1265445004#gid=1265445004" target="_blank" rel="noopener"><i class="ico"></i><span>排單表</span></a>
+    <a class="icon" data-ico="link" href="https://www.plurk.com/p/3i9qc1nskr" target="_blank" rel="noopener"><i class="ico"></i><span>過往製作</span></a>
+  </nav>
+
+  <main id="wins">
+    <section class="win raised" id="w-notice" data-title="公告.txt" data-icon="doc" data-start="open" data-x="226" data-y="26" data-w="590" data-h="400">
+      <div class="titlebar"><span class="t">公告.txt — 狗勾的娃委</span><div class="ctl"><button class="raised" data-min aria-label="最小化">_</button><button class="raised" data-max aria-label="最大化">□</button><button class="raised" data-close aria-label="關閉">×</button></div></div>
+      <div class="body sunken">
+        <div class="home">
+          <figure class="frame sunken portrait"><img src="img/doll/mascot.png" alt="狗勾的娃委" width="700" height="630"></figure>
+          <div>
+            <div class="sub">PLUSH DOLL COMMISSION</div>
+            <h1>狗勾的娃委</h1>
+            <p><span class="tag">● 忙碌中</span> <span class="sub">排到後約 2 週完成（隻）</span></p>
+            <h3>委託須知</h3>
+            <ul>
+              <li>預設成品會公開展示當範例，如不接受請告知</li>
+              <li>我方保有規則修改權，請以當下委託規則為主</li>
+              <li>暫時只接認識的 + FF14</li>
+            </ul>
+            <h3>聯絡方式</h3>
+            <div class="links">
+              <a class="btn raised" href="https://www.plurk.com/RE_FF14" target="_blank" rel="noopener">plurk</a>
+              <a class="btn raised" href="https://www.threads.com/@ember_tyrant" target="_blank" rel="noopener">threads</a>
+              <code>DC: the_mind_of_madness</code>
+            </div>
+            <h3>過往製作參考</h3>
+            <div class="links">
+              <a class="btn raised" href="https://www.plurk.com/p/3i9qc1nskr" target="_blank" rel="noopener">集中串</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="win raised" id="w-flow" data-title="收費與流程" data-icon="folder" data-start="open" data-x="200" data-y="446" data-w="480" data-h="396">
+      <div class="titlebar"><span class="t">收費與流程</span><div class="ctl"><button class="raised" data-min aria-label="最小化">_</button><button class="raised" data-max aria-label="最大化">□</button><button class="raised" data-close aria-label="關閉">×</button></div></div>
+      <div class="body sunken">
+        <div class="links">
+          <span class="tag">● 忙碌</span>
+          <a class="btn raised" href="https://docs.google.com/spreadsheets/d/1k0LaiqIRiGB7kKw6Tilj5Nu5qKGJzvfSBfIcGOecxBU/edit?gid=1265445004#gid=1265445004" target="_blank" rel="noopener">排單表</a>
+        </div>
+        <ul>
+          <li>排到後約 2 週完成（隻）</li>
+          <li>鈔單 = 原價 x2</li>
+          <li>可接鈔：10cm、努努體</li>
+        </ul>
+        <h3>收費</h3>
+        <ul>
+          <li>給予娃稿 → 提供需求我方報價 → 全額付款</li>
+          <li>交貨便 60 元手續費由我方吸收</li>
+          <li>材料到達後兩天完成（材料貨運運送時間約一週）</li>
+          <li>付款提供台新帳號、paypal</li>
+        </ul>
+        <h3>流程</h3>
+        <h4>第一階段</h4>
+        <p class="sub">此階段退費如已印製買布會扣除材料費用</p>
+        <p>給予娃稿 → （可選）繡線與布料選色 → 每月 7 號印製採購布料 → 等待製作</p>
+        <h4>第二階段</h4>
+        <div class="steps">
+          <div class="step raised"><b>1</b>選色</div>
+          <div class="step raised"><b>2</b>刺繡</div>
+          <div class="step raised"><b>3</b>頭部製作</div>
+          <div class="step raised"><b>4</b>完成</div>
+        </div>
+        <p>製作開始從 2 開始，如果需要更詳細或簡短一點的流程回報都可以提出。</p>
+        <figure class="frame sunken"><img src="img/doll/flow.jpg" alt="製作流程：選色、刺繡、頭部製作、完成" width="1400" height="1509" loading="lazy"></figure>
+        <h3>客製</h3>
+        <p>依複雜度與需求可能會上調。</p>
+        <p class="note">不確定可以先發圖片讓我報價，不需要委託也沒關係。</p>
+      </div>
+    </section>
+
+    <section class="win raised" id="w-color" data-title="選色" data-icon="palette" data-start="open" data-x="832" data-y="20" data-w="584" data-h="600">
+      <div class="titlebar"><span class="t">選色 — 繡線 / 布料</span><div class="ctl"><button class="raised" data-min aria-label="最小化">_</button><button class="raised" data-max aria-label="最大化">□</button><button class="raised" data-close aria-label="關閉">×</button></div></div>
+      <div class="body sunken">
+        <p class="warn">如不想選色將由我選色，都會有色差 都會有色差 都會有色差！</p>
+        <h3>繡線</h3>
+        <p>三種光下選擇一種作為參考，如不想選擇將由我選。</p>
+        <figure class="frame sunken"><img src="img/doll/thread.jpg" alt="繡線選色區（三種色光下擇一選擇）" width="1800" height="1792" loading="lazy"></figure>
+        <h3>布料</h3>
+        <p>也可以由您自行採購 5mm / 1mm 水晶絨之後寄給我以免色差。</p>
+        <div class="grid2">
+          <figure class="frame sunken"><img src="img/doll/fab5.jpg" alt="5mm 長毛布選色區" width="1800" height="1878" loading="lazy"><figcaption>5mm 長毛布（告知色號即可）</figcaption></figure>
+          <figure class="frame sunken"><img src="img/doll/fab1.jpg" alt="1mm 短毛布選色區" width="1800" height="1481" loading="lazy"><figcaption>1mm 短毛布（告知色號即可）</figcaption></figure>
+        </div>
+        <p>或是三醬家的 1mm 水晶絨布色號（圖源來自店家圖片僅供參考）。</p>
+        <figure class="frame sunken" data-size="l"><img src="img/doll/sanjiang.jpg" alt="三醬家 1mm 水晶絨布色號" width="1400" height="2587" loading="lazy"></figure>
+      </div>
+      <div class="statusbar"><div class="sunken">點圖片可以放大</div><div class="sunken">都會有色差</div></div>
+    </section>
+
+    <section class="win raised" id="w-nunu" data-title="努努體(印花體)" data-icon="doll" data-start="open" data-x="640" data-y="196" data-w="776" data-h="644">
+      <div class="titlebar"><span class="t">努努體(印花體)</span><div class="ctl"><button class="raised" data-min aria-label="最小化">_</button><button class="raised" data-max aria-label="最大化">□</button><button class="raised" data-close aria-label="關閉">×</button></div></div>
+      <div class="body sunken">
+        <div class="cols">
+          <div>
+            <div class="price sunken">
+              <div class="row"><span class="k">10 公分・上揚手</span><span class="n">1000</span><span class="u">元起</span></div>
+              <div class="row"><span class="k">10 公分・下垂手</span><span class="n">1100</span><span class="u">元起</span></div>
+            </div>
+            <p>可以跟我要空白娃稿或自備 sna-ga 大的娃稿（皆使用 sna-ga 的娃稿為主）。</p>
+            <p class="warn">不接過於複雜眼／太小的細節，圓形無法保證非常完美，選色盡量最多 7 色。個人能力關係 10cm 太小的地方會呈現不好。</p>
+            <h3>範例</h3>
+            <div class="shots">
+              <figure class="shot raised"><img src="img/doll/nunu1.jpg" alt="努努體範例" width="1200" height="883" loading="lazy"><figcaption><b>基礎A・1mm水晶絨</b>獸耳尾(耳內粉)+辮子<br>身體：下垂手</figcaption></figure>
+              <figure class="shot raised"><img src="img/doll/nunu2.jpg" alt="努努體範例" width="636" height="1035" loading="lazy"><figcaption><b>基礎A・1mm水晶絨</b>側髮+獸耳(耳內粉)+挑染拼貼<br>身體：下垂手</figcaption></figure>
+              <figure class="shot raised"><img src="img/doll/nunu3.jpg" alt="努努體範例" width="1100" height="1467" loading="lazy"><figcaption><b>基礎B・5mm水晶絨</b>獸耳尾+挑染刺繡拼貼<br>身體：上揚手</figcaption></figure>
+            </div>
+            <h3>額外選項</h3>
+            <ol>
+              <li>臉型：默認原版，有需要縮下巴版本請提出。</li>
+              <li>骨架：裝骨 +50 元</li>
+            </ol>
+            <figure class="frame sunken"><img src="img/doll/face.jpg" alt="臉型比較：原版與縮下巴" width="1400" height="553" loading="lazy"></figure>
+          </div>
+          <div>
+            <h3>身體製作選項</h3>
+            <figure class="frame sunken"><img src="img/doll/body.jpg" alt="身體製作選項：下垂手與上揚手" width="1400" height="507" loading="lazy"></figure>
+            <h3>頭部製作選項</h3>
+            <p>不確定可由我看娃稿做估價。</p>
+            <figure class="frame sunken"><img src="img/doll/head.jpg" alt="頭部製作選項與加價項目" width="1500" height="2259" loading="lazy"></figure>
+          </div>
+        </div>
+      </div>
+      <div class="statusbar"><div class="sunken">3 個範例・點圖片可以放大</div><div class="sunken">10cm</div></div>
+    </section>
+
+    <section class="win raised" id="w-normal" data-title="正常體" data-icon="doll" data-start="" data-x="300" data-y="60" data-w="800" data-h="700">
+      <div class="titlebar"><span class="t">正常體</span><div class="ctl"><button class="raised" data-min aria-label="最小化">_</button><button class="raised" data-max aria-label="最大化">□</button><button class="raised" data-close aria-label="關閉">×</button></div></div>
+      <div class="body sunken">
+        <div class="cols">
+          <div>
+            <div class="price sunken">
+              <div class="row"><span class="k">10 公分（僅做白膚色）</span><span class="n">1100</span><span class="u">元起</span></div>
+              <div class="row"><span class="k">20 公分（白膚色外 +100 元）</span><span class="n">2000</span><span class="u">元起</span></div>
+            </div>
+            <p>可以跟我要空白娃稿或自備娃稿。</p>
+            <p class="warn">不接過於複雜眼／太小的細節，圓形無法保證非常完美，選色盡量最多 7 色。個人能力關係 10cm 太小的地方會呈現不好。</p>
+            <h3>範例</h3>
+            <div class="shots">
+              <figure class="shot raised" data-fit="center"><img src="img/doll/norm1.jpg" alt="正常體範例" width="1200" height="836" loading="lazy"><figcaption><b>基礎B・5mm水晶絨</b>頭髮部分刺繡<br>身體：10cm 正常體</figcaption></figure>
+              <figure class="shot raised"><img src="img/doll/norm2.jpg" alt="正常體範例" width="1100" height="1178" loading="lazy"><figcaption><b>基礎A・5mm水晶絨</b>挑染刺繡拼貼+長後髮片+額外刺繡配件<br>身體：10cm 正常體</figcaption></figure>
+              <figure class="shot raised"><img src="img/doll/norm3.jpg" alt="正常體範例" width="1100" height="1467" loading="lazy"><figcaption><b>基礎B・5mm水晶絨</b>身體：20cm 正常體額外刺繡</figcaption></figure>
+            </div>
+            <h3>額外選項</h3>
+            <ol>
+              <li>骨架：10cm 裝骨 +50 元　20cm 裝骨 +100 元</li>
+            </ol>
+          </div>
+          <div>
+            <h3>頭部製作選項</h3>
+            <p>不確定可由我看娃稿做估價。</p>
+            <figure class="frame sunken"><img src="img/doll/head.jpg" alt="頭部製作選項與加價項目" width="1500" height="2259" loading="lazy"></figure>
+          </div>
+        </div>
+      </div>
+      <div class="statusbar"><div class="sunken">3 個範例・點圖片可以放大</div><div class="sunken">10cm / 20cm</div></div>
+    </section>
+
+    <section class="win raised" id="w-animal" data-title="動物體" data-icon="doll" data-start="" data-x="440" data-y="90" data-w="520" data-h="660">
+      <div class="titlebar"><span class="t">動物體</span><div class="ctl"><button class="raised" data-min aria-label="最小化">_</button><button class="raised" data-max aria-label="最大化">□</button><button class="raised" data-close aria-label="關閉">×</button></div></div>
+      <div class="body sunken">
+        <div class="price sunken">
+          <div class="row"><span class="k">10 公分</span><span class="n">800</span><span class="u">元起</span></div>
+        </div>
+        <p class="warn">不接過於複雜眼／太小的細節，圓形無法保證非常完美，選色盡量最多 7 色。個人能力關係 10cm 太小的地方會呈現不好。</p>
+        <h3>範例</h3>
+        <figure class="frame sunken" data-size="m"><img src="img/doll/animal.jpg" alt="動物體範例" width="1100" height="1467" loading="lazy"><figcaption><b>5mm水晶絨</b>身體額外刺繡</figcaption></figure>
+      </div>
+      <div class="statusbar"><div class="sunken">1 個範例・點圖片可以放大</div><div class="sunken">10cm</div></div>
+    </section>
+
+    <section class="win raised" id="w-care" data-title="維護說明.txt" data-icon="doc" data-start="" data-x="360" data-y="70" data-w="620" data-h="680">
+      <div class="titlebar"><span class="t">維護說明.txt — 補充：娃娃的維護說明</span><div class="ctl"><button class="raised" data-min aria-label="最小化">_</button><button class="raised" data-max aria-label="最大化">□</button><button class="raised" data-close aria-label="關閉">×</button></div></div>
+      <div class="body sunken">
+        <p class="note">以下都是個人遇到的經驗而已，沒有什麼特別的地方 TT!!<br>如果有錯誤或疑問可以跟我說，謝謝。</p>
+        <h3>1. 頭髮片分開或配件脫落</h3>
+        <p>可能因為水洗或沒燙融黏合襯、保麗龍膠脫膠導致髮片分開，配件脫落。</p>
+        <h4>處理方式</h4>
+        <ul>
+          <li>可以用一點保麗龍膠塗在中間、想要黏合處壓一下就好</li>
+          <li>如果壓下去溢膠可以噴一點酒精溶解保麗龍膠後擦掉</li>
+        </ul>
+        <div class="grid2">
+          <figure class="frame sunken"><img src="img/doll/fix1.jpg" alt="髮片分開的位置" width="1200" height="639" loading="lazy"></figure>
+          <figure class="frame sunken"><img src="img/doll/fix2.jpg" alt="配件脫落" width="1200" height="900" loading="lazy"></figure>
+        </div>
+        <h3>2. 清理方式</h3>
+        <ul>
+          <li>水洗、中性洗衣精，長毛可以用刷子梳開（覺得睫毛刷的刷頭挺好順毛的）</li>
+          <li>棉花都是用全新的，短期內不需要做更換</li>
+        </ul>
+        <h4>不建議</h4>
+        <ul>
+          <li>用粗刷刷印花或配件可能導致布料受損配件脫落</li>
+          <li>用酒精噴娃娃，黏合的配件或頭髮可能受損</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <div class="menu raised" id="menu" hidden>
+    <div class="brand">狗勾的娃委</div>
+    <ul id="menu-list"></ul>
+  </div>
+
+  <footer class="taskbar raised">
+    <button class="start raised" id="start" aria-haspopup="true" aria-expanded="false"><i class="ico" data-ico="doll"></i>開始</button>
+    <span class="sep"></span>
+    <div class="tasks" id="tasks"></div>
+    <div class="tray sunken"><span><i class="dot"></i><span class="state">忙碌中</span></span><span class="hide-s">FF14</span><span id="clock">--:--</span></div>
+  </footer>
+
+  <dialog class="viewer raised" id="viewer">
+    <div class="titlebar"><span class="t" id="viewer-title">圖片檢視器</span><div class="ctl"><button class="raised" id="viewer-close" aria-label="關閉">×</button></div></div>
+    <div class="vstage sunken" id="viewer-stage"><img id="viewer-img" alt=""></div>
+    <div class="vbar"><span>點圖片切換 符合視窗 / 原始大小</span><a id="viewer-orig" href="#" target="_blank" rel="noopener">開啟原圖</a></div>
+  </dialog>
+</div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const holder = $('wins'), tasks = $('tasks'), menu = $('menu'), menuList = $('menu-list'), start = $('start');
+  const narrow = matchMedia('(max-width: 760px)');
+  const BAR = 40, CANVAS_W = 1440, CANVAS_H = 860;
+  const all = () => [...holder.querySelectorAll('.win')];
+  const shown = w => !w.hidden && !w.classList.contains('mini');
+  const btnFor = new Map();
+  let z = 10;
+
+  const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), Math.max(lo, hi));
+  function place(w) {
+    const aw = innerWidth, ah = innerHeight - BAR;
+    const ox = Math.max(0, (aw - CANVAS_W) / 2), oy = Math.max(0, (ah - CANVAS_H) / 2);
+    const ww = Math.min(+w.dataset.w || 520, aw - 12), hh = Math.min(+w.dataset.h || 420, ah - 12);
+    w.style.left = Math.round(clamp(ox + (+w.dataset.x || 40), 6, aw - ww - 6)) + 'px';
+    w.style.top = Math.round(clamp(oy + (+w.dataset.y || 40), 6, ah - hh - 6)) + 'px';
+    w.style.width = ww + 'px'; w.style.height = hh + 'px';
+  }
+
+  const label = (el, w) => {
+    el.replaceChildren();
+    const i = document.createElement('i'); i.className = 'ico'; i.dataset.ico = w.dataset.icon || 'doc';
+    const s = document.createElement('span'); s.textContent = w.dataset.title || w.id;
+    el.append(i, s);
+  };
+
+  // Windows are looked up on every call, so one added later (e.g. in the admin editor) just works.
+  function adopt(w) {
+    if (btnFor.has(w)) return;
+    const b = document.createElement('button');
+    b.addEventListener('click', () => {
+      if (w.classList.contains('active') && shown(w)) minimise(w); else openWin(w);
+    });
+    tasks.appendChild(b); btnFor.set(w, b); label(b, w);
+    const li = document.createElement('li'), mb = document.createElement('button');
+    mb.addEventListener('click', () => openWin(w));
+    li.appendChild(mb); menuList.insertBefore(li, menuList.querySelector('.tail')); label(mb, w); b._menu = mb;
+    place(w);
+    w.style.zIndex = ++z;
+    watcher.observe(w, { attributes: true, attributeFilter: ['hidden', 'data-x', 'data-y', 'data-w', 'data-h', 'data-title', 'data-icon'] });
+  }
+
+  function sync() {
+    const ws = all();
+    ws.forEach(adopt);
+    for (const [w, b] of btnFor) {
+      if (!w.isConnected) { b._menu.parentElement.remove(); b.remove(); btnFor.delete(w); continue; }
+      b.hidden = w.hidden;
+      b.className = w.classList.contains('active') && shown(w) ? 'pressed' : 'raised';
+      document.querySelectorAll('.icon[data-open="' + w.id + '"]').forEach(i => i.classList.toggle('on', !w.hidden));
+    }
+  }
+
+  function focusWin(w) {
+    all().forEach(o => o.classList.toggle('active', o === w));
+    if (w) w.style.zIndex = ++z;
+    sync();
+  }
+  const topmost = () => all().filter(shown).sort((a, b) => (+b.style.zIndex || 0) - (+a.style.zIndex || 0))[0];
+
+  function openWin(w) {
+    if (typeof w === 'string') w = $(w);
+    if (!w) return;
+    if (narrow.matches) all().forEach(o => { if (o !== w) o.hidden = true; });
+    w.classList.remove('mini');
+    w.hidden = false;
+    focusWin(w);
+    closeMenu();
+  }
+  function closeWin(w) { w.hidden = true; w.classList.remove('mini', 'max'); focusWin(topmost()); }
+  function minimise(w) { if (narrow.matches) return closeWin(w); w.classList.add('mini'); focusWin(topmost()); }
+
+  // Reacts to changes made from outside (the admin editor un-hiding a window or editing its position).
+  const watcher = new MutationObserver(list => {
+    for (const m of list) {
+      const w = m.target;
+      if (m.attributeName === 'hidden') { if (!w.hidden && !w.classList.contains('active')) openWin(w); else sync(); }
+      else if (m.attributeName === 'data-title' || m.attributeName === 'data-icon') { const b = btnFor.get(w); if (b) { label(b, w); label(b._menu, w); } }
+      else place(w);
+    }
+  });
+  new MutationObserver(sync).observe(holder, { childList: true });
+
+  const closeMenu = () => { menu.hidden = true; start.setAttribute('aria-expanded', 'false'); start.className = 'start raised'; };
+  start.addEventListener('click', e => {
+    e.stopPropagation();
+    const show = menu.hidden;
+    menu.hidden = !show; start.setAttribute('aria-expanded', String(show)); start.className = 'start ' + (show ? 'pressed' : 'raised');
+  });
+  {
+    const tail = document.createElement('li'); tail.className = 'tail';
+    const hr = document.createElement('hr'), b = document.createElement('button');
+    b.textContent = '全部關閉';
+    b.addEventListener('click', () => { all().forEach(w => { w.hidden = true; w.classList.remove('mini', 'max'); }); focusWin(null); closeMenu(); });
+    tail.append(hr, b); menuList.appendChild(tail);
+  }
+
+  document.addEventListener('click', e => {
+    if (!menu.hidden && !menu.contains(e.target)) closeMenu();
+    const opener = e.target.closest('[data-open]');
+    if (opener) return openWin(opener.dataset.open);
+    const w = e.target.closest('.win');
+    if (w) {
+      if (e.target.closest('[data-close]')) return closeWin(w);
+      if (e.target.closest('[data-min]')) return minimise(w);
+      if (e.target.closest('[data-max]')) return w.classList.toggle('max');
+    }
+    const img = e.target.closest('figure:not(.portrait) img');
+    if (img && !img.closest('#viewer')) showImage(img);
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMenu(); });
+  document.addEventListener('pointerdown', e => {
+    const w = e.target.closest('.win');
+    if (w && !w.classList.contains('active') && !e.target.closest('.ctl')) focusWin(w);
+  }, true);
+
+  // Drag by the title bar (wide screens only).
+  let drag = null;
+  document.addEventListener('pointerdown', e => {
+    const bar = e.target.closest('.win > .titlebar');
+    if (!bar || e.button !== 0 || e.target.closest('.ctl') || narrow.matches) return;
+    const w = bar.parentElement;
+    if (w.classList.contains('max')) return;
+    drag = { w, dx: e.clientX - w.offsetLeft, dy: e.clientY - w.offsetTop };
+  });
+  addEventListener('pointermove', e => {
+    if (!drag) return;
+    const { w } = drag;
+    w.style.left = clamp(e.clientX - drag.dx, 40 - w.offsetWidth, innerWidth - 40) + 'px';
+    w.style.top = clamp(e.clientY - drag.dy, 0, innerHeight - BAR - 26) + 'px';
+  });
+  addEventListener('pointerup', () => { drag = null; });
+  addEventListener('pointercancel', () => { drag = null; });
+  document.addEventListener('dblclick', e => {
+    const bar = e.target.closest('.win > .titlebar');
+    if (bar && !e.target.closest('.ctl') && !narrow.matches) bar.parentElement.classList.toggle('max');
+  });
+  addEventListener('resize', () => all().forEach(place));
+
+  // Image viewer: fit to window, click to toggle original size.
+  const viewer = $('viewer'), vImg = $('viewer-img'), vStage = $('viewer-stage');
+  function showImage(img) {
+    vStage.classList.remove('zoomed');
+    vImg.src = img.currentSrc || img.src; vImg.alt = img.alt;
+    $('viewer-orig').href = img.src;
+    $('viewer-title').textContent = (img.alt || decodeURIComponent(img.getAttribute('src').split('/').pop())) + ' — 圖片檢視器';
+    if (!viewer.open) viewer.showModal();
+  }
+  vImg.addEventListener('click', e => {
+    const r = vImg.getBoundingClientRect(), fx = (e.clientX - r.left) / r.width, fy = (e.clientY - r.top) / r.height;
+    const on = vStage.classList.toggle('zoomed');
+    if (on) { vStage.scrollLeft = fx * vImg.offsetWidth - vStage.clientWidth / 2; vStage.scrollTop = fy * vImg.offsetHeight - vStage.clientHeight / 2; }
+  });
+  $('viewer-close').addEventListener('click', () => viewer.close());
+  viewer.addEventListener('click', e => { if (e.target === viewer) viewer.close(); });
+
+  const clock = $('clock');
+  const tick = () => { const d = new Date(); clock.textContent = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
+  tick(); setInterval(tick, 15000);
+
+  // Start state: windows marked data-start="open" are open, in source order (last one on top).
+  // On narrow screens only the first of them is.
+  const initial = all();
+  let first = true;
+  initial.forEach(w => {
+    const open = w.dataset.start === 'open' && (!narrow.matches || first);
+    if (open) first = false;
+    w.hidden = !open;
+  });
+  sync();
+  focusWin(narrow.matches ? initial.find(w => !w.hidden) : initial.filter(w => !w.hidden).pop());
+  narrow.addEventListener('change', () => {
+    if (narrow.matches) { const keep = topmost(); all().forEach(w => { if (w !== keep) w.hidden = true; w.classList.remove('mini', 'max'); }); focusWin(keep); }
+  });
+})();
+</script>
+</html>
