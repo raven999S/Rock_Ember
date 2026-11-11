@@ -1,0 +1,118 @@
+{
+  "siteName": "狗勾的娃委",
+  "siteRoot": "../",
+  "pages": [
+    { "path": "doll.html", "label": "娃委桌面（主頁）" }
+  ],
+  "assetsDir": "img/doll",
+  "text": [".tag", ".btn", ".step", ".sub", ".note", ".warn", ".price .row", ".statusbar div", ".links code", "figcaption"],
+  "locked": [".ctl", "#tasks", "#clock", "#menu", "#viewer", ".ico"],
+  "repeat": [
+    { "selector": ".win", "label": "視窗", "title": "attr:data-title", "linked": [".icons > [data-open=\"{id}\"]"] },
+    { "selector": ".icons > .icon", "label": "桌面圖示" },
+    { "selector": ".cols > div", "label": "欄（左右兩欄）" },
+    { "selector": ".shots", "label": "範例列" },
+    { "selector": ".grid2", "label": "並排圖片" },
+    { "selector": "figure", "label": "圖片" },
+    { "selector": ".price", "label": "價目表" },
+    { "selector": ".price .row", "label": "價目列" },
+    { "selector": ".steps", "label": "流程步驟列" },
+    { "selector": ".steps > .step", "label": "流程步驟" },
+    { "selector": ".links", "label": "按鈕列" },
+    { "selector": ".links > *", "label": "按鈕／標籤" },
+    { "selector": "dl.kv > dt", "label": "對照欄位", "span": 2, "title": "text" },
+    { "selector": ".note, .warn", "label": "提示框" },
+    { "selector": "ul, ol", "label": "清單" },
+    { "selector": "li", "label": "清單項目" },
+    { "selector": "p", "label": "段落" },
+    { "selector": "h3, h4", "label": "標題" },
+    { "selector": ".statusbar", "label": "狀態列" }
+  ],
+  "fields": [
+    { "selector": "figure", "attr": "data-size", "label": "圖片寬度", "type": "select",
+      "options": [ { "value": "", "label": "滿版（跟著欄寬）" }, { "value": "l", "label": "大（480px）" }, { "value": "m", "label": "中（320px）" }, { "value": "s", "label": "小（180px）" } ] },
+    { "selector": ".shot", "attr": "data-fit", "label": "範例照片裁切", "type": "select",
+      "options": [ { "value": "", "label": "裁切・偏上（預設）" }, { "value": "top", "label": "裁切・最上面" }, { "value": "center", "label": "裁切・正中間" }, { "value": "contain", "label": "不裁切（完整顯示）" } ] },
+    { "selector": ".icon", "attr": "data-ico", "label": "圖示樣式", "type": "select",
+      "options": [ { "value": "doc", "label": "文件" }, { "value": "folder", "label": "資料夾" }, { "value": "palette", "label": "色票" }, { "value": "doll", "label": "娃娃" }, { "value": "sheet", "label": "表格" }, { "value": "link", "label": "外部連結" } ] },
+    { "selector": ".icon[data-open]", "attr": "data-open", "label": "點了要打開的視窗 id" },
+    { "selector": ".win", "attr": "data-title", "label": "視窗名稱（工作列與開始選單）" },
+    { "selector": ".win", "attr": "data-icon", "label": "視窗圖示（工作列）", "type": "select",
+      "options": [ { "value": "doc", "label": "文件" }, { "value": "folder", "label": "資料夾" }, { "value": "palette", "label": "色票" }, { "value": "doll", "label": "娃娃" }, { "value": "sheet", "label": "表格" }, { "value": "link", "label": "外部連結" } ] },
+    { "selector": ".win", "attr": "data-start", "label": "進站時", "type": "select",
+      "options": [ { "value": "open", "label": "預設打開" }, { "value": "", "label": "預設關閉（點圖示才開）" } ] },
+    { "selector": ".win", "attr": "data-x", "label": "視窗位置：左（px，以 1440×860 桌面為準）" },
+    { "selector": ".win", "attr": "data-y", "label": "視窗位置：上（px）" },
+    { "selector": ".win", "attr": "data-w", "label": "視窗寬度（px）" },
+    { "selector": ".win", "attr": "data-h", "label": "視窗高度（px）" },
+    { "selector": ".desktop", "attr": "data-theme", "label": "整站配色", "type": "select",
+      "options": [ { "value": "sage", "label": "灰綠（預設）" }, { "value": "mauve", "label": "霧紫" }, { "value": "sand", "label": "奶茶" }, { "value": "slate", "label": "灰藍" }, { "value": "night", "label": "深色" } ] }
+  ],
+  "runtime": [
+    { "selector": ".win", "attrs": ["style", "hidden"], "classes": ["active", "mini", "max"] },
+    { "selector": ".icon", "classes": ["on"] }
+  ],
+  "outline": [
+    { "selector": ".win", "label": "attr:data-title" }
+  ],
+  "inserts": [
+    { "label": "圖片", "image": true, "into": ".body, .cols > div, .home > div",
+      "html": "<figure class=\"frame sunken\"><img src=\"{src}\" alt=\"{alt}\" width=\"{w}\" height=\"{h}\" loading=\"lazy\"><figcaption>圖片說明</figcaption></figure>" },
+    { "label": "兩張並排", "images": 2, "into": ".body, .cols > div, .home > div",
+      "html": "<div class=\"grid2\">\n{items}\n        </div>",
+      "item": "          <figure class=\"frame sunken\"><img src=\"{src}\" alt=\"{alt}\" width=\"{w}\" height=\"{h}\" loading=\"lazy\"><figcaption>圖片說明</figcaption></figure>" },
+    { "label": "範例照片列（最多 3 張）", "images": 3, "into": ".body, .cols > div, .home > div",
+      "html": "<div class=\"shots\">\n{items}\n        </div>",
+      "item": "          <figure class=\"shot raised\"><img src=\"{src}\" alt=\"{alt}\" width=\"{w}\" height=\"{h}\" loading=\"lazy\"><figcaption><b>基礎A・1mm水晶絨</b>製作內容<br>身體：</figcaption></figure>" },
+    { "label": "範例照片（加進這一列）", "image": true, "into": ".shots",
+      "html": "<figure class=\"shot raised\"><img src=\"{src}\" alt=\"{alt}\" width=\"{w}\" height=\"{h}\" loading=\"lazy\"><figcaption><b>基礎A・1mm水晶絨</b>製作內容<br>身體：</figcaption></figure>" },
+    { "label": "段落", "into": ".body, .cols > div, .home > div", "html": "<p>新的段落</p>" },
+    { "label": "▌標題", "into": ".body, .cols > div, .home > div", "html": "<h3>新標題</h3>" },
+    { "label": "▸ 小標題", "into": ".body, .cols > div, .home > div", "html": "<h4>新小標題</h4>" },
+    { "label": "小字註記", "into": ".body, .cols > div, .home > div", "html": "<p class=\"sub\">小字註記</p>" },
+    { "label": "清單", "into": ".body, .cols > div, .home > div", "html": "<ul>\n          <li>新項目</li>\n        </ul>" },
+    { "label": "編號清單", "into": ".body, .cols > div, .home > div", "html": "<ol>\n          <li>新項目</li>\n        </ol>" },
+    { "label": "清單項目", "into": "ul, ol", "html": "<li>新項目</li>" },
+    { "label": "提示框", "into": ".body, .cols > div, .home > div", "html": "<p class=\"note\">提示文字</p>" },
+    { "label": "注意框", "into": ".body, .cols > div, .home > div", "html": "<p class=\"warn\">注意事項</p>" },
+    { "label": "價目表", "into": ".body, .cols > div, .home > div",
+      "html": "<div class=\"price sunken\">\n          <div class=\"row\"><span class=\"k\">10 公分</span><span class=\"n\">1000</span><span class=\"u\">元起</span></div>\n        </div>" },
+    { "label": "價目列", "into": ".price", "html": "<div class=\"row\"><span class=\"k\">品項</span><span class=\"n\">1000</span><span class=\"u\">元起</span></div>" },
+    { "label": "按鈕列", "into": ".body, .cols > div, .home > div",
+      "html": "<div class=\"links\">\n          <a class=\"btn raised\" href=\"https://\" target=\"_blank\" rel=\"noopener\">連結</a>\n        </div>" },
+    { "label": "連結按鈕", "into": ".links", "html": "<a class=\"btn raised\" href=\"https://\" target=\"_blank\" rel=\"noopener\">連結</a>" },
+    { "label": "狀態標籤", "into": ".links", "html": "<span class=\"tag\">● 狀態</span>" },
+    { "label": "流程步驟列", "into": ".body, .cols > div, .home > div",
+      "html": "<div class=\"steps\">\n          <div class=\"step raised\"><b>1</b>步驟</div>\n          <div class=\"step raised\"><b>2</b>步驟</div>\n        </div>" },
+    { "label": "流程步驟", "into": ".steps", "html": "<div class=\"step raised\"><b>0</b>步驟</div>" },
+    { "label": "對照表", "into": ".body, .cols > div, .home > div",
+      "html": "<dl class=\"kv\">\n          <dt>項目</dt><dd>內容</dd>\n        </dl>" },
+    { "label": "對照欄位", "into": "dl.kv", "html": "<dt>項目</dt><dd>內容</dd>" },
+    { "label": "左右兩欄", "into": ".body",
+      "html": "<div class=\"cols\">\n          <div>\n            <p>左欄內容</p>\n          </div>\n          <div>\n            <p>右欄內容</p>\n          </div>\n        </div>" }
+  ],
+  "create": [
+    {
+      "label": "視窗",
+      "prompt": "新視窗的名稱（會顯示在標題列、桌面圖示、工作列與開始選單）",
+      "defaultTitle": "新檔案.txt",
+      "idBase": "w-new",
+      "into": "#wins",
+      "html": "<section class=\"win raised\" id=\"{id}\" data-title=\"{title}\" data-icon=\"doc\" data-start=\"\" data-x=\"320\" data-y=\"80\" data-w=\"600\" data-h=\"520\">\n      <div class=\"titlebar\"><span class=\"t\">{title}</span><div class=\"ctl\"><button class=\"raised\" data-min aria-label=\"最小化\">_</button><button class=\"raised\" data-max aria-label=\"最大化\">□</button><button class=\"raised\" data-close aria-label=\"關閉\">×</button></div></div>\n      <div class=\"body sunken\">\n        <h3>{title}</h3>\n        <p>在這裡輸入內容。點選段落後，可以從右側「在這後面插入」加入圖片、價目表、提示框等。</p>\n      </div>\n      <div class=\"statusbar\"><div class=\"sunken\">{title}</div><div class=\"sunken\">EOF</div></div>\n    </section>",
+      "also": [
+        { "into": ".icons", "html": "<button class=\"icon\" data-ico=\"doc\" data-open=\"{id}\"><i class=\"ico\"></i><span>{title}</span></button>" }
+      ]
+    },
+    {
+      "label": "外部連結圖示",
+      "prompt": "桌面圖示的名稱（建立後選取它，在右側改網址）",
+      "defaultTitle": "新連結",
+      "idBase": "link-new",
+      "into": ".icons",
+      "html": "<a class=\"icon\" data-ico=\"link\" href=\"https://\" target=\"_blank\" rel=\"noopener\"><i class=\"ico\"></i><span>{title}</span></a>"
+    }
+  ],
+  "github": { "owner": "raven999S", "repo": "Rock_Ember", "branch": "main", "dir": "" },
+  "publish": { "default": "github" },
+  "ui": { "theme": "site", "side": "right", "density": "comfy", "outline": true }
+}
